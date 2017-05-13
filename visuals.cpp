@@ -19,6 +19,8 @@ private:
     int m_width = 25;
     int m_height = 20;
     int m_fps = 60;
+    std::string m_host = "192.168.17.1";
+    int m_port = 7890;
 
     Network m_network;
     CivetServer* m_server = nullptr;
@@ -50,6 +52,19 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
             if (fpsi)
                 m_fps = fpsi;
             message = "fps=" + std::to_string(m_fps);
+        }
+        std::string host;
+        if (CivetServer::getParam(conn, "host", host, 0)) {
+            if (!host.empty())
+                m_host = host;
+            message = "host=" + m_host;
+        }
+        std::string port;
+        if (CivetServer::getParam(conn, "port", port, 0)) {
+            int porti = atoi(port.c_str());
+            if (porti)
+                m_port = porti;
+            message = "port=" + std::to_string(m_port);
         }
         message = "HTTP/1.1 200 OK\r\n\r\n" + message;
         mg_printf(conn, message.c_str());
@@ -100,7 +115,7 @@ int Visuals::main(int argc, char* argv[])
     Mix_Music* music = Mix_LoadMUS( "beat.wav" );*/
 
     std::vector<unsigned int> buffer;
-    m_network.connect("192.168.17.1", 7890);
+    m_network.connect(m_host, m_port);
     while (true) {
         buffer.clear();
         fill(buffer);
