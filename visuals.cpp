@@ -3,6 +3,7 @@
 #include <c:/code/visuals/SDL2-2.0.5/include/SDL.h>
 #include "network.hpp"
 #include <thread>
+#include <memory>
 #include "CivetServer.h"
 
 class Visuals : public CivetHandler {
@@ -23,7 +24,7 @@ private:
     int m_port = 7890;
 
     Network m_network;
-    CivetServer* m_server = nullptr;
+    std::unique_ptr<CivetServer> m_server;
 };
 
 Visuals::Visuals()
@@ -36,7 +37,7 @@ Visuals::Visuals()
                               "num_threads", "4",
                               nullptr
                             };
-    m_server = new CivetServer(options);
+    m_server.reset(new CivetServer(options));
     m_server->addHandler("/set", this);
 }
 
@@ -214,6 +215,5 @@ int Visuals::main(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
     Visuals visuals;
-    visuals.main(argc, argv);
-    return 0;
+    return visuals.main(argc, argv);
 }
