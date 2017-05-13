@@ -1,2 +1,6 @@
 Debug
 Release
+*.vcxproj.*
+*.suo
+*.sdf
+*.dll
