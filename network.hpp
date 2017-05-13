@@ -2,8 +2,12 @@
 #define NETWORK_HPP
 
 #include <vector>
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#include <winsock2.h>
+#ifdef WIN32
+    #define _WINSOCK_DEPRECATED_NO_WARNINGS
+    #include <winsock2.h>
+#else
+    #include <netinet/ip.h>
+#endif
 
 class Network {
 public:
@@ -15,7 +19,9 @@ public:
     std::vector<char> recv();
 
 private:
+#ifdef WIN32
     WSADATA m_wsa;
+#endif
     int m_socket = 0;
     sockaddr_in m_sockaddr_in;;
 };
