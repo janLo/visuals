@@ -5,6 +5,7 @@
 #include <thread>
 #include <memory>
 #include "CivetServer.h"
+#include "sound.hpp"
 
 class Visuals : public CivetHandler {
 public:
@@ -25,6 +26,7 @@ private:
 
     Network m_network;
     std::unique_ptr<CivetServer> m_server;
+    Sound m_sound;
 };
 
 Visuals::Visuals()
