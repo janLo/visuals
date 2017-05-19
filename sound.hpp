@@ -2,14 +2,23 @@
 #define SOUND_HPP
 
 #include <map>
-#include "C:\Users\tobi\Desktop\pa_stable_v190600_20161030\pa_stable_v190600_20161030\portaudio\include\portaudio.h"
+#include <portaudio.h>
+#include <vorbis/vorbisfile.h>
+#include <memory>
+
+class Channel {
+public:
+    FILE* m_file;
+    std::shared_ptr<OggVorbis_File> m_vorbisfile;
+    PaStream* m_stream;
+};
 
 class Sound {
 public:
     Sound();
     ~Sound();
 
-    int play(char* data);
+    int play(const std::string& filename);
     void stop(int streamID);
 
 private:
