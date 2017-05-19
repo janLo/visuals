@@ -6,23 +6,23 @@
 #include <vorbis/vorbisfile.h>
 #include <memory>
 
-class Channel {
+class Stream {
 public:
-    FILE* m_file;
+    FILE* m_file = nullptr;
     std::shared_ptr<OggVorbis_File> m_vorbisfile;
-    PaStream* m_stream;
+    PaStream* m_stream = nullptr;
 };
 
 class Sound {
 public:
     Sound();
-    ~Sound();
+    virtual ~Sound();
 
     int play(const std::string& filename);
     void stop(int streamID);
 
 private:
-    std::map<int, PaStream*> m_streams;
+    std::map<int, Stream> m_streams;
     int m_streamIDNext = 1;
     static int callback(const void *input, void *output, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
 
