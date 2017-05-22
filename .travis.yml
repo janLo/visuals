@@ -1,0 +1,32 @@
+language: cpp
+
+dist: trusty
+sudo: false
+
+compiler:
+  - gcc
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libvorbis-dev
+      - libsdl2-dev
+      - libportaudio-dev
+      - cmake
+      - gcc-4.9
+      - g++-4.9
+
+env:
+  - COMPILER=g++-4.9
+
+before_script:
+  - dpkg -L gcc-4.9
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
+
+script:
+  - pwd
+  - make
