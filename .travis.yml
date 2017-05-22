@@ -13,7 +13,7 @@ addons:
     packages:
       - libvorbis-dev
       - libsdl2-dev
-      - libportaudio-dev
+      - portaudio19-dev
       - cmake
       - gcc-4.9
       - g++-4.9
