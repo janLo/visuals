@@ -22,7 +22,6 @@ env:
   - COMPILER=g++-4.9
 
 before_script:
-  - dpkg -L gcc-4.9
   - mkdir build
   - cd build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
