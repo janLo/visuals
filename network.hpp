@@ -1,6 +1,7 @@
 #ifndef NETWORK_HPP
 #define NETWORK_HPP
 
+#include <string>
 #include <vector>
 #ifdef WIN32
     #define _WINSOCK_DEPRECATED_NO_WARNINGS

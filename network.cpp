@@ -1,6 +1,16 @@
 #include "network.hpp"
 
 #include <sstream>
+#include <stdexcept>
+
+#ifndef WIN32
+    #include <cerrno>
+    #include <unistd.h>
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <arpa/inet.h>
+    #define SOCKET_ERROR -1
+#endif
 
 #pragma comment(lib,"ws2_32.lib") //Winsock Library
 
@@ -33,9 +43,11 @@ Network::Network()
 
 Network::~Network()
 {
-    closesocket(m_socket);
 #ifdef WIN32
+    closesocket(m_socket);
     WSACleanup();
+#else
+    close(m_socket);
 #endif
 }
 
@@ -44,7 +56,7 @@ void Network::connect(const std::string& host, int port)
     m_sockaddr_in = { 0 };
     m_sockaddr_in.sin_family = AF_INET;
     m_sockaddr_in.sin_port = htons(port);
-    m_sockaddr_in.sin_addr.S_un.S_addr = inet_addr(host.c_str());
+    m_sockaddr_in.sin_addr.s_addr = inet_addr(host.c_str());
 }
 
 void Network::send(const std::vector<char> message)
@@ -62,7 +74,7 @@ std::vector<char> Network::recv()
     std::vector<char> buffer;
     buffer.resize(512);
     //try to receive some data, this is a blocking call
-    int len;
+    socklen_t len;
     if (recvfrom(m_socket, buffer.data(), buffer.size(), 0, (sockaddr*)&m_sockaddr_in, &len) == SOCKET_ERROR)
     {
         std::stringstream ss;

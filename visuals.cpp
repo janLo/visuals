@@ -1,6 +1,12 @@
 #define SDL_MAIN_HANDLED
 #include <iostream>
-#include <c:/code/visuals/SDL2-2.0.5/include/SDL.h>
+
+#ifndef WIN32
+    #include <SDL2/SDL.h>
+#else
+    #include <c:/code/visuals/SDL2-2.0.5/include/SDL.h>
+#endif
+
 #include "network.hpp"
 #include <thread>
 #include <memory>
