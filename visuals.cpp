@@ -1,11 +1,4 @@
-#define SDL_MAIN_HANDLED
 #include <iostream>
-
-#ifndef WIN32
-    #include <SDL2/SDL.h>
-#else
-    #include <c:/code/visuals/SDL2-2.0.5/include/SDL.h>
-#endif
 
 #include "network.hpp"
 #include <thread>
@@ -119,9 +112,6 @@ void Visuals::fill(std::vector<unsigned int>& buffer)
 
 int Visuals::main(int argc, char* argv[])
 {
-/*    if( Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 4096 ) == -1 ) {
-    }
-    Mix_Music* music = Mix_LoadMUS( "beat.wav" );*/
 
     std::vector<unsigned int> buffer;
     m_network.connect(m_host, m_port);
@@ -136,87 +126,6 @@ int Visuals::main(int argc, char* argv[])
         }
     }
     
-#if 0
-    if (SDL_Init(SDL_INIT_VIDEO) != 0){
-        std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
-        return 1;
-    }
-
-    SDL_Window* win = SDL_CreateWindow("Visuals", 100, 100, 640, 480, SDL_WINDOW_SHOWN);
-    if (!win){
-        std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    SDL_Renderer* renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!renderer){
-        SDL_DestroyWindow(win);
-        std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    SDL_RendererInfo rendererInfo;
-    if (SDL_GetRenderDriverInfo(0, &rendererInfo)) {
-        SDL_DestroyWindow(win);
-        std::cout << "SDL_GetRenderDriverInfo Error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-
-/*    SDL_Surface* bmp = SDL_CreateRGBSurface(0, width, height, 1, 0xff0000, 0xff00, 0xff00, 0xff000000);
-    if (!bmp){
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(win);
-        std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }*/
-
-
-/*    SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, bmp);
-//    SDL_FreeSurface(bmp);
-    if (!tex){
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(win);
-        std::cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }*/
-    for (unsigned int i=0; i<rendererInfo.num_texture_formats; i++)
-        std::cout << "texture format: " << rendererInfo.texture_formats[i] << std::endl;
-    
-    SDL_Texture* tex = SDL_CreateTexture(renderer, rendererInfo.texture_formats[0], SDL_TEXTUREACCESS_STREAMING, width, height);
-
-    bool quit = false;
-    while (!quit) {
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT){
-                quit = true;
-            }        
-        }
-
-/*        if (!SDL_LockSurface(bmp)) {
-            for (int y=0; y<bmp->h; y++)
-                for (int x=0; x<bmp->w; x++) {
-                    unsigned int* pixels = static_cast<unsigned int*>(bmp->pixels);
-                    pixels[y*bmp->w+x] = 0xff0000ff;
-                }
-            SDL_UnlockSurface(bmp);
-        }*/
-        SDL_RenderClear(renderer);
-        SDL_RenderCopy(renderer, tex, NULL, NULL);
-        SDL_RenderPresent(renderer);
-    }
-
-    SDL_DestroyTexture(tex);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(win);
-    SDL_Quit();
-#endif
     return 0;
 }
 
