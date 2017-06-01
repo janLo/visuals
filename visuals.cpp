@@ -97,7 +97,8 @@ void Visuals::send(const std::vector<unsigned int>& buffer)
             }
         }
     }
-    m_network.send(out);
+    m_network.send(out, 0, 800);
+    m_network.send(out, 800, 700);
 }
 
 void Visuals::fill(std::vector<unsigned int>& buffer)
