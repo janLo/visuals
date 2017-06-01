@@ -14,16 +14,21 @@ public:
 private:
     void send(const std::vector<unsigned int>& buffer);
     void fill(std::vector<unsigned int>& buffer);
+    void setBrightness(float brightness);
 
     bool handleGet(CivetServer* server, mg_connection* conn);
 
     int m_width = 25;
     int m_height = 20;
-    int m_fps = 60;
-    std::string m_host = "192.168.17.1";
-    int m_port = 7890;
+    int m_roof = 10;
+    int m_fps = 30;
+    std::string m_host = "192.168.1.111";
+    int m_port = 7000;
+    int m_portControl = 7001;
+    float m_brightness;
 
     Network m_network;
+    Network m_networkControl;
     std::unique_ptr<CivetServer> m_server;
     Sound m_sound;
 };
@@ -68,6 +73,22 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
                 m_port = porti;
             message = "port=" + std::to_string(m_port);
         }
+        std::string portControl;
+        if (CivetServer::getParam(conn, "portControl", portControl, 0)) {
+            int portControli = atoi(portControl.c_str());
+            if (portControli)
+                m_portControl = portControli;
+            message = "portControl=" + std::to_string(m_portControl);
+        }
+        std::string brightness;
+        if (CivetServer::getParam(conn, "brightness", brightness, 0)) {
+            float brightnessf = atof(brightness.c_str());
+            if (brightnessf) {
+                m_brightness = brightnessf;
+                setBrightness(m_brightness);
+            }
+            message = "brightness=" + std::to_string(m_brightness);
+        }
         message = "HTTP/1.1 200 OK\r\n\r\n" + message;
         mg_printf(conn, message.c_str());
     }
@@ -111,11 +132,19 @@ void Visuals::fill(std::vector<unsigned int>& buffer)
     }
 }
 
+void Visuals::setBrightness(float brightness)
+{
+    std::vector<char> control;
+    control.push_back(2);
+    control.push_back(static_cast<char>(brightness * 255.0f));
+    m_networkControl.send(control);
+}
+
 int Visuals::main(int argc, char* argv[])
 {
-
     std::vector<unsigned int> buffer;
     m_network.connect(m_host, m_port);
+    m_networkControl.connect(m_host, m_portControl);
     while (true) {
         buffer.clear();
         fill(buffer);
