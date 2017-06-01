@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <string>
+
 #ifdef WIN32
     #define _WINSOCK_DEPRECATED_NO_WARNINGS
     #include <winsock2.h>
@@ -17,6 +19,7 @@ public:
 
     void connect(const std::string& host, int port);
     void send(const std::vector<char> message);
+    void send(const std::vector<char> message, size_t offset, size_t count);
     std::vector<char> recv();
 
 private:
