@@ -91,6 +91,16 @@ void Sound::stop(int streamID)
     m_streams.erase(stream);
 }
 
+double Sound::getTime(int streamID)
+{
+    auto stream = m_streams.find(streamID);
+    if (stream == m_streams.end())
+        return 0.0;
+
+    //return Pa_GetStreamTime(stream->second->m_stream); // doesn't work for some reason
+    return stream->second->m_time;
+}
+
 int Sound::callback(const void *inputBuffer,
     void *outputBuffer,
     unsigned long framesPerBuffer,
@@ -125,6 +135,8 @@ int Sound::callback(const void *inputBuffer,
 
         samples += ret;
     }
+
+    stream->m_time = timeInfo->outputBufferDacTime;
 
     return paNoError;
 }

@@ -12,6 +12,7 @@ public:
     OggVorbis_File m_vorbisfile;
     PaStream* m_stream = nullptr;
     bool m_loop = false;
+    double m_time = 0.0;
 };
 
 class Sound {
@@ -21,6 +22,7 @@ public:
 
     int play(const std::string& filename, bool loop = false);
     void stop(int streamID);
+    double getTime(int streamID);
 
 private:
     std::map<int, std::shared_ptr<Stream>> m_streams;
