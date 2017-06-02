@@ -26,6 +26,7 @@ private:
     int m_port = 7000;
     int m_portControl = 7001;
     float m_brightness;
+    std::vector<int> m_leds;
 
     Network m_network;
     Network m_networkControl;
@@ -45,6 +46,27 @@ Visuals::Visuals()
                             };
     m_server.reset(new CivetServer(options));
     m_server->addHandler("/set", this);
+
+    // init led lookup table
+/*    for (int x=0, i=0; x < m_width; x++) {
+        int off = (x / 5) % 2;
+        for (int y=0; y < m_height; y++, i++) {
+            if ((x + off) % 2 == 0)
+                m_leds.push_back(x * m_height + y);
+            else
+                m_leds.push_back(x * m_height + (m_height - 1) - y);                
+        }
+    }*/
+
+    m_leds = { 0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400, 425, 450, 475 };
+    for (int x=1; x<25; x++) {
+        for (int y=0; y<20; y++) {
+            if ((x % 2) == ((x / 5) % 2))
+                m_leds.push_back(m_leds[y] + x);
+            else
+                m_leds.push_back(m_leds[19-y] + x);
+        }
+    }
 }
 
 bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
@@ -101,22 +123,11 @@ void Visuals::send(const std::vector<unsigned int>& buffer)
     std::vector<char> out;
     out.resize(m_width * m_height * 3);
 
-    for (int x=0, i=0; x<m_width; x++) {
-        if ((x & 1) == 0) {
-            for (int y=0; y<m_height; y++, i+=3) {
-                unsigned int col = buffer[y * m_width + x];
-                out[i+0] = (col & 0x0000ff) >> 0;
-                out[i+1] = (col & 0x00ff00) >> 8;
-                out[i+2] = (col & 0xff0000) >> 16;
-            }
-        } else {
-            for (int y=m_height-1; y>=0; y--, i+=3) {
-                unsigned int col = buffer[y * m_width + x];
-                out[i+0] = (col & 0x0000ff) >> 0;
-                out[i+1] = (col & 0x00ff00) >> 8;
-                out[i+2] = (col & 0xff0000) >> 16;
-            }
-        }
+    for (int i=0; i < m_width * m_height; i++) {
+        unsigned int col = buffer[m_leds[i]];
+        out[i * 3 + 0] = (col & 0x0000ff) >> 0;
+        out[i * 3 + 1] = (col & 0x00ff00) >> 8;
+        out[i * 3 + 2] = (col & 0xff0000) >> 16;
     }
     m_network.send(out, 0, 800);
     m_network.send(out, 800, 700);
