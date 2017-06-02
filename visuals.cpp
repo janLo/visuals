@@ -32,6 +32,7 @@ private:
     Network m_networkControl;
     std::unique_ptr<CivetServer> m_server;
     Sound m_sound;
+    int m_streamID = 0;
 };
 
 Visuals::Visuals()
@@ -156,6 +157,8 @@ int Visuals::main(int argc, char* argv[])
     std::vector<unsigned int> buffer;
     m_network.connect(m_host, m_port);
     m_networkControl.connect(m_host, m_portControl);
+
+    m_streamID = m_sound.play("compo.ogg", true);
     while (true) {
         buffer.clear();
         fill(buffer);
