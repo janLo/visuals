@@ -104,7 +104,7 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
         }
         std::string brightness;
         if (CivetServer::getParam(conn, "brightness", brightness, 0)) {
-            float brightnessf = atof(brightness.c_str());
+            float brightnessf = static_cast<float>(atof(brightness.c_str()));
             if (brightnessf) {
                 m_brightness = brightnessf;
                 setBrightness(m_brightness);
