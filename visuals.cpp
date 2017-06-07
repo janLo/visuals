@@ -126,9 +126,9 @@ void Visuals::send(const std::vector<unsigned int>& buffer)
 
     for (int i=0; i < m_width * m_height; i++) {
         unsigned int col = buffer[m_leds[i]];
-        out[i * 3 + 0] = (col & 0x0000ff) >> 0;
+        out[i * 3 + 0] = (col & 0xff0000) >> 16;
         out[i * 3 + 1] = (col & 0x00ff00) >> 8;
-        out[i * 3 + 2] = (col & 0xff0000) >> 16;
+        out[i * 3 + 2] = (col & 0x0000ff) >> 0;
     }
     m_network.send(out, 0, 800);
     m_network.send(out, 800, 700);
