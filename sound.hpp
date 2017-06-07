@@ -13,6 +13,7 @@ public:
     PaStream* m_stream = nullptr;
     bool m_loop = false;
     double m_time = 0.0;
+    float m_volume = 1.0f;
 };
 
 class Sound {
@@ -23,6 +24,8 @@ public:
     int play(const std::string& filename, bool loop = false);
     void stop(int streamID);
     double getTime(int streamID);
+    void setVolume(int streamID, float volume);
+    float getVolume(int streamID);
 
 private:
     std::map<int, std::shared_ptr<Stream>> m_streams;

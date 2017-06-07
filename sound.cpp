@@ -101,6 +101,26 @@ double Sound::getTime(int streamID)
     return stream->second->m_time;
 }
 
+void Sound::setVolume(int streamID, float volume)
+{
+    volume = std::max(0.0f, std::min(1.0f, volume));
+
+    auto stream = m_streams.find(streamID);
+    if (stream == m_streams.end())
+        return;
+
+    stream->second->m_volume = volume;
+}
+
+float Sound::getVolume(int streamID)
+{
+    auto stream = m_streams.find(streamID);
+    if (stream == m_streams.end())
+        return 0.0f;
+
+    return stream->second->m_volume;
+}
+
 int Sound::callback(const void *inputBuffer,
     void *outputBuffer,
     unsigned long framesPerBuffer,
@@ -129,8 +149,8 @@ int Sound::callback(const void *inputBuffer,
 
         for(int i=0; i<ret; i++)
         {
-            *out++ = vorbisOut[0][i];
-            *out++ = vorbisOut[1][i];
+            *out++ = vorbisOut[0][i] * stream->m_volume;
+            *out++ = vorbisOut[1][i] * stream->m_volume;
         }
 
         samples += ret;
