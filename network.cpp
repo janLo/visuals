@@ -24,8 +24,7 @@ Network::Network()
 
 #ifdef WIN32
     // initialise winsock
-    if (WSAStartup(MAKEWORD(2,2), &m_wsa) != 0)
-    {
+    if (WSAStartup(MAKEWORD(2,2), &m_wsa) != 0) {
         std::stringstream ss;
         ss << "Error: WSAStartup failed: " << WSAGetLastError();
         throw std::runtime_error(ss.str());
@@ -33,8 +32,7 @@ Network::Network()
 #endif
 
     //create socket
-    if ((m_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == SOCKET_ERROR)
-    {
+    if ((m_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == SOCKET_ERROR) {
         std::stringstream ss;
         ss << "Error: socket() failed: " << errno;
         throw std::runtime_error(ss.str());
@@ -57,6 +55,20 @@ void Network::connect(const std::string& host, int port)
     m_sockaddr_in.sin_family = AF_INET;
     m_sockaddr_in.sin_port = htons(port);
     m_sockaddr_in.sin_addr.s_addr = inet_addr(host.c_str());
+}
+
+void Network::listen(int port)
+{
+    m_sockaddr_in = { 0 };
+	m_sockaddr_in.sin_family = AF_INET;
+	m_sockaddr_in.sin_port = htons(port);
+	m_sockaddr_in.sin_addr.s_addr = INADDR_ANY;
+	
+	if(bind(m_socket, (sockaddr *)&m_sockaddr_in, sizeof(m_sockaddr_in)) == SOCKET_ERROR) {
+        std::stringstream ss;
+        ss << "Error: bind() failed: " << errno;
+        throw std::runtime_error(ss.str());
+	}
 }
 
 void Network::send(const std::vector<char> message)
@@ -84,10 +96,11 @@ void Network::send(const std::vector<char> message, size_t offset, size_t count)
 std::vector<char> Network::recv()
 {
     std::vector<char> buffer;
-    buffer.resize(512);
+    buffer.resize(2048);
     //try to receive some data, this is a blocking call
-    socklen_t len;
-    if (recvfrom(m_socket, buffer.data(), buffer.size(), 0, (sockaddr*)&m_sockaddr_in, &len) == SOCKET_ERROR)
+    socklen_t len = sizeof(m_sockaddr_in);
+    int size = 0;
+    if ((size = recvfrom(m_socket, buffer.data(), buffer.size(), 0, (sockaddr*)&m_sockaddr_in, &len)) == SOCKET_ERROR)
     {
         std::stringstream ss;
         ss << "Error: recvfrom() failed: " << errno;
