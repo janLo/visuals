@@ -1,10 +1,27 @@
+#define NOMINMAX
 #include <iostream>
+#include <random>
 
 #include "network.hpp"
 #include <thread>
 #include <memory>
 #include "CivetServer.h"
 #include "sound.hpp"
+#include "color.hpp"
+#include <array>
+#include <algorithm>
+#include <atomic>
+
+/*#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"*/
+
+#pragma pack(1)
+struct MotionData {
+    unsigned int timestamp;
+    short w, x, y, z;
+    unsigned short counter;
+};
+#pragma pack()
 
 class Visuals : public CivetHandler {
 public:
@@ -14,31 +31,121 @@ public:
 private:
     void send(const std::vector<unsigned int>& buffer);
     void fill(std::vector<unsigned int>& buffer);
+    void rotate(std::vector<unsigned int>& buffer, float rot);
+    void motion(const MotionData& motionData);
+    void anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time);
     void setBrightness(float brightness);
 
     bool handleGet(CivetServer* server, mg_connection* conn);
+    bool getParamString(mg_connection* conn, const std::string& name, std::string& result, size_t occurance);
+    bool getParamFloat(mg_connection* conn, const std::string& name, float& result, size_t occurance);
+    bool getParamInt(mg_connection* conn, const std::string& name, int& result, size_t occurance);
+
+    void effectRaindrops(std::vector<unsigned int>& buffer);
 
     int m_width = 25;
     int m_height = 20;
     int m_roof = 10;
-    int m_fps = 30;
+    int m_fps = 60;
     std::string m_host = "192.168.1.111";
+    std::string m_hostMotion = "192.168.1.112";
     int m_port = 7000;
     int m_portControl = 7001;
-    float m_brightness;
+    int m_portMotion = 7000;
+    int m_portMotionControl = 7001;
+    float m_brightness = 0.1f;
     std::vector<int> m_leds;
+    float m_x, m_y, m_z; // motion controller euler angles
 
     Network m_network;
     Network m_networkControl;
     std::unique_ptr<CivetServer> m_server;
     Sound m_sound;
     int m_streamID = 0;
+    int m_music = 0;
+    float m_volume = 1.0f;
+    std::vector<std::string> m_musicFiles;
+};
+
+template<class T>
+T fmod2(T x, T y)
+{
+    if (x >= T(0))
+        return std::fmod(x, y);
+    return std::fmod(x, y) + y;
+}
+
+Color3 saturate(const Color3& col)
+{
+    return Color3(
+        std::max(0.0f, std::min(1.0f, col.r)),
+        std::max(0.0f, std::min(1.0f, col.g)),
+        std::max(0.0f, std::min(1.0f, col.b))
+        );
+}
+/*
+Color3 hue(float h)
+{
+    float r = abs(h * 6 - 3) - 1;
+    float g = 2 - abs(h * 6 - 2);
+    float b = 2 - abs(h * 6 - 4);
+    return saturate(Color3(r, g, b));
+}
+
+Color3 HSVtoRGB(const Color3& hsv)
+{
+    return Color3(((hue(hsv.r) - 1.0f) * hsv.g + 1.0f) * hsv.b);
+}
+*/
+Color3 HSVtoRGB(const Color3& hsv)
+{
+    Color3 out;
+    float h = hsv.r;
+    float s = hsv.g;
+    float v = hsv.b;
+    if (s == 0.0f)
+    {
+        // gray
+        out.r = out.g = out.b = v;
+        return out;
+    }
+
+    h = fmodf(h, 1.0f) / (60.0f/360.0f);
+    int   i = (int)h;
+    float f = h - (float)i;
+    float p = v * (1.0f - s);
+    float q = v * (1.0f - s * f);
+    float t = v * (1.0f - s * (1.0f - f));
+
+    switch (i)
+    {
+    case 0: out.r = v; out.g = t; out.b = p; break;
+    case 1: out.r = q; out.g = v; out.b = p; break;
+    case 2: out.r = p; out.g = v; out.b = t; break;
+    case 3: out.r = p; out.g = q; out.b = v; break;
+    case 4: out.r = t; out.g = p; out.b = v; break;
+    case 5: default: out.r = v; out.g = p; out.b = q; break;
+    }
+    return out;
+}
+
+class Effect {
+public:
+    virtual ~Effect() {}
+    virtual void fill(std::vector<unsigned int>& buffer, double time);
+};
+
+class EffectRaindrops : public Effect {
+    void fill(std::vector<unsigned int>& buffer, double time) override
+    {
+    
+    }
 };
 
 Visuals::Visuals()
 {
     // start webserver
-    std::string path = "";
+    std::string path = "data";
     std::cout << "starting webserver: " << path << std::endl;
     const char* options[] = { "document_root", path.c_str(),
                               "listening_ports", "8080",
@@ -47,6 +154,10 @@ Visuals::Visuals()
                             };
     m_server.reset(new CivetServer(options));
     m_server->addHandler("/set", this);
+    m_server->addHandler("/music/volup", this);
+    m_server->addHandler("/music/voldown", this);
+    m_server->addHandler("/music/next", this);
+    m_server->addHandler("/music/previous", this);
 
     // init led lookup table
 /*    for (int x=0, i=0; x < m_width; x++) {
@@ -68,6 +179,47 @@ Visuals::Visuals()
                 m_leds.push_back(m_leds[19-y] + x);
         }
     }
+
+    m_musicFiles = {
+        "compo.ogg"
+    };
+
+}
+
+bool Visuals::getParamString(mg_connection* conn, const std::string& name, std::string& result, size_t occurance)
+{
+    std::string results;
+    if (CivetServer::getParam(conn, name.c_str(), results, 0)) {
+        if (!results.empty())
+            result = results;
+    }
+    return false;
+}
+
+bool Visuals::getParamFloat(mg_connection* conn, const std::string& name, float& result, size_t occurance)
+{
+    std::string results;
+    if (CivetServer::getParam(conn, name.c_str(), results, 0)) {
+        float resultf = static_cast<float>(atof(results.c_str()));
+        if (resultf) {
+            result = resultf;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Visuals::getParamInt(mg_connection* conn, const std::string& name, int& result, size_t occurance)
+{
+    std::string results;
+    if (CivetServer::getParam(conn, name.c_str(), results, 0)) {
+        int resulti = atoi(results.c_str());
+        if (resulti) {
+            result = resulti;
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
@@ -76,46 +228,58 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
     
     if (uri == "/set") {
         std::string message;
-        std::string fps;
-        if (CivetServer::getParam(conn, "fps", fps, 0)) {
-            int fpsi = atoi(fps.c_str());
-            if (fpsi)
-                m_fps = fpsi;
+        if (getParamInt(conn, "fps", m_fps, 0)) {
             message = "fps=" + std::to_string(m_fps);
         }
-        std::string host;
-        if (CivetServer::getParam(conn, "host", host, 0)) {
-            if (!host.empty())
-                m_host = host;
+        if (getParamString(conn, "host", m_host, 0)) {
             message = "host=" + m_host;
         }
-        std::string port;
-        if (CivetServer::getParam(conn, "port", port, 0)) {
-            int porti = atoi(port.c_str());
-            if (porti)
-                m_port = porti;
+        if (getParamString(conn, "hostMotion", m_hostMotion, 0)) {
+            message = "hostMotion=" + m_hostMotion;
+        }
+        if (getParamInt(conn, "port", m_port, 0)) {
             message = "port=" + std::to_string(m_port);
         }
-        std::string portControl;
-        if (CivetServer::getParam(conn, "portControl", portControl, 0)) {
-            int portControli = atoi(portControl.c_str());
-            if (portControli)
-                m_portControl = portControli;
+        if (getParamInt(conn, "portMotionControl", m_portControl, 0)) {
             message = "portControl=" + std::to_string(m_portControl);
         }
-        std::string brightness;
-        if (CivetServer::getParam(conn, "brightness", brightness, 0)) {
-            float brightnessf = static_cast<float>(atof(brightness.c_str()));
-            if (brightnessf) {
-                m_brightness = brightnessf;
-                setBrightness(m_brightness);
-            }
+        if (getParamInt(conn, "portMotion", m_portMotion, 0)) {
+            message = "portMotion=" + std::to_string(m_portMotion);
+        }
+        if (getParamInt(conn, "portMotionControl", m_portMotionControl, 0)) {
+            message = "portMotionControl=" + std::to_string(m_portMotionControl);
+        }
+        if (getParamFloat(conn, "brightness", m_brightness, 0)) {
+            setBrightness(m_brightness);
             message = "brightness=" + std::to_string(m_brightness);
         }
         message = "HTTP/1.1 200 OK\r\n\r\n" + message;
         mg_printf(conn, message.c_str());
     }
-
+    if (uri == "/music/next") {
+        m_sound.stop(m_streamID);
+        m_music = (m_music + 1) % m_musicFiles.size();
+        m_streamID = m_sound.play(m_musicFiles[m_music]);
+        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
+    }
+    if (uri == "/music/previous") {
+        m_sound.stop(m_streamID);
+        m_music = (m_music + m_musicFiles.size() - 1) % m_musicFiles.size();
+        m_streamID = m_sound.play(m_musicFiles[m_music]);
+        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
+    }
+    if (uri == "/music/volup") {
+        m_volume += 0.1f;
+        m_volume = std::max(0.0f, std::min(1.0f, m_volume));
+        m_sound.setVolume(m_streamID, m_volume);
+        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
+    }
+    if (uri == "/music/voldown") {
+        m_volume -= 0.1f;
+        m_volume = std::max(0.0f, std::min(1.0f, m_volume));
+        m_sound.setVolume(m_streamID, m_volume);
+        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
+    }
     return true;
 }
 
@@ -126,6 +290,16 @@ void Visuals::send(const std::vector<unsigned int>& buffer)
 
     for (int i=0; i < m_width * m_height; i++) {
         unsigned int col = buffer[m_leds[i]];
+
+        
+        // cut away errors 0x030504
+        if ((col & 0xff0000) >> 16 < 5)
+            col = col & 0xff00ffff;
+        if ((col & 0x00ff00) >> 8 < 5)
+            col = col & 0xffff00ff;
+        if ((col & 0x0000ff) >> 0 < 5)
+            col = col & 0xffffff00;
+
         out[i * 3 + 0] = (col & 0xff0000) >> 16;
         out[i * 3 + 1] = (col & 0x00ff00) >> 8;
         out[i * 3 + 2] = (col & 0x0000ff) >> 0;
@@ -134,14 +308,70 @@ void Visuals::send(const std::vector<unsigned int>& buffer)
     m_network.send(out, 800, 700);
 }
 
-void Visuals::fill(std::vector<unsigned int>& buffer)
+void Visuals::effectRaindrops(std::vector<unsigned int>& buffer)
 {
-    buffer.resize(m_width * m_height);
+    srand(0);
+    std::array<int, 25> offsets;
+    std::array<Color3, 25> colors;
+    for (int x=0; x<m_width; x++) {
+        offsets[x] = rand() % 10;
+        colors[x] = Color3(((float)rand()/RAND_MAX) / 2 + 0.5f, ((float)rand()/RAND_MAX / 4) / 2 + 0.5f, ((float)rand()/RAND_MAX / 4) / 2 + 0.5f);
+/*        colors[x].r = fmod(x / 25.0f, 1.0f); //(float)rand() / RAND_MAX / 2 + 0.5f;
+        colors[x].g = fmod(x / 25.0f+0.33, 1.0f); // (float)rand() / RAND_MAX / 8 + 0.5f;
+        colors[x].b = fmod(x / 25.0f+0.66, 1.0f); // (float)rand() / RAND_MAX / 8 + 0.5f;*/
+        colors[x] = HSVtoRGB(Color3(x / 50.0f, 1.0f, 1.0f));
+    }
+
+    double time = m_sound.getTime(m_streamID);
+    int t = time * m_fps / 10.0f;
     for (int y=0; y<m_height; y++) {
         for (int x=0; x<m_width; x++) {
-
+            float frac = fmod(t, 1.0f);
+            Color3 col1 = colors[x];
+            col1 *= (fmod2((float)(y-t+offsets[x]), (float)m_height) / m_height - 0.5f) * 2.0f;
+            buffer[y*m_width+x] = col1;
         }
     }
+}
+
+void Visuals::anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time)
+{
+    for (int y=0; y<m_width; y++) {
+        for (int x=0; x<m_height; x++) {
+        }
+    }
+}
+
+void Visuals::rotate(std::vector<unsigned int>& buffer, float rot)
+{
+    rot = fmod2(rot / 3.141592f / 2.0f, 1.0f);
+    std::cout << m_x << " " << " " << m_y << " " << " " << m_z << " " << rot << std::endl;
+    std::vector<unsigned int> buf2;
+    buf2.resize(buffer.size());
+    for (int x=0; x<m_width; x++) {
+        for (int y=0; y<m_height; y++) {
+            float frac = fmod(rot * m_width, 1.0f);
+            Color3 col1(buffer[y * m_width + (x + size_t(rot * m_width) + 0) % m_width]);
+            Color3 col2(buffer[y * m_width + (x + size_t(rot * m_width) + 1) % m_width]);
+            buf2[y * m_width + x] = /*col1 + (col2 - col1) * frac;*/ col1 * (1 - frac) + col2 * frac;
+        }
+    }
+
+    std::copy(buf2.begin(), buf2.end(), buffer.begin());
+}
+
+void Visuals::fill(std::vector<unsigned int>& buffer)
+{
+    double time = m_sound.getTime(m_streamID);
+    int t = time * m_fps;
+
+    std::random_device r;
+    std::default_random_engine e1(r());
+    std::uniform_int_distribution<int> uniform_dist(0, 0xffffff);
+
+    buffer.resize(m_width * m_height);
+    effectRaindrops(buffer);
+    rotate(buffer, m_x/*time / 10.0f*/);
 }
 
 void Visuals::setBrightness(float brightness)
@@ -152,14 +382,47 @@ void Visuals::setBrightness(float brightness)
     m_networkControl.send(control);
 }
 
+void Visuals::motion(const MotionData& motionData)
+{
+    float xs = motionData.x / 16384.0f;
+    float ys = motionData.y / 16384.0f;
+    float zs = motionData.z / 16384.0f;
+    float ws = motionData.w / 16384.0f;
+    m_x = atan2(2*xs*ys - 2*ws*zs, 2*ws*ws + 2*xs*xs - 1);  // psi
+    m_y = -asin(2*xs*zs + 2*ws*ys);                         // theta
+    m_z = atan2(2*ys*zs - 2*ws*xs, 2*ws*ws + 2*zs*zs - 1);  // phi
+    m_x = m_x + 3.141592;
+    //std::cout << motionData.timestamp << " " << xs << " " << ys << " " << zs << " " << ws << " " << m_x / 3.141592f * 180.0f << " " << m_y / 3.141592f * 180.0f << " " << m_z / 3.141592f * 180.0f << std::endl;
+}
+
 int Visuals::main(int argc, char* argv[])
 {
     std::vector<unsigned int> buffer;
     m_network.connect(m_host, m_port);
+    //std::cout << "sockname: " << m_network.getSockName() << std::endl;
     m_networkControl.connect(m_host, m_portControl);
 
+    std::atomic<MotionData> amd;
+
+    auto motionThread = std::thread([this, &amd]() {
+        Network network;
+        network.listen(m_portMotion);
+        while (true) {
+            try {
+                auto result = network.recv();
+                MotionData& motionData = reinterpret_cast<MotionData&>(*result.data());
+                amd = motionData;
+            } catch (const std::runtime_error& ex) {
+                std::cout << ex.what() << std::endl;
+            }
+        }
+    });
+    
     m_streamID = m_sound.play("compo.ogg", true);
     while (true) {
+        MotionData md = amd;
+        motion(md);
+
         buffer.clear();
         fill(buffer);
         try {
