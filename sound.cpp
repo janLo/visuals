@@ -60,6 +60,7 @@ int Sound::play(const std::string& filename, bool loop)
         ss << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
         throw std::runtime_error(ss.str());
     }
+    s->m_stream = stream;
 
     err = Pa_StartStream(stream);
     if (err != paNoError) {
