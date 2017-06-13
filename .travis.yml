@@ -12,7 +12,6 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - libvorbis-dev
-      - libsdl2-dev
       - portaudio19-dev
       - cmake
       - gcc-4.9
