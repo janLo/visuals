@@ -478,7 +478,7 @@ void Visuals::add(std::vector<unsigned int>& result, const std::vector<unsigned 
 
 void addToBuffer(std::vector<unsigned int>& result, const std::vector<unsigned int>& buf, float coeff) {
     for (unsigned int i = 0; i < result.size(); ++i) {
-        result[i] += coeff * buf[i];
+        result[i] += coeff * Color3(buf[i]);
     }
 }
 
@@ -517,7 +517,7 @@ void Visuals::fill(std::vector<unsigned int>& buffer, std::vector<std::shared_pt
     for (auto effect : effects) {
         std::vector<unsigned int> buf(m_width * m_height);
         effect->fill(buf, m_time);
-        addToBuffer(buffer, buf, 1.0f);
+        addToBuffer(buffer, buf, 0.7f);
 
     }
     effectLines(buffer, 0, 0, 00, 19, Color3(1, 1, 1));
