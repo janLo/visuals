@@ -388,10 +388,12 @@ void Visuals::motion(const MotionData& motionData)
     float ys = motionData.y / 16384.0f;
     float zs = motionData.z / 16384.0f;
     float ws = motionData.w / 16384.0f;
-    m_x = atan2(2*xs*ys - 2*ws*zs, 2*ws*ws + 2*xs*xs - 1);  // psi
+    m_x = atan2(2*(xs*ys + ws*zs), 1-2*(ws*ws + xs*xs));  // psi
     m_y = -asin(2*xs*zs + 2*ws*ys);                         // theta
     m_z = atan2(2*ys*zs - 2*ws*xs, 2*ws*ws + 2*zs*zs - 1);  // phi
-    m_x = m_x + 3.141592;
+    /*  m_x = atan2(2*xs*ys - 2*ws*zs, 2*ws*ws + 2*xs*xs - 1);  // psi
+    m_x = m_x + 3.141592f;*/
+   // m_x = m_x + 3.141592f;
     //std::cout << motionData.timestamp << " " << xs << " " << ys << " " << zs << " " << ws << " " << m_x / 3.141592f * 180.0f << " " << m_y / 3.141592f * 180.0f << " " << m_z / 3.141592f * 180.0f << std::endl;
 }
 
