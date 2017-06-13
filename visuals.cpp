@@ -68,6 +68,7 @@ private:
     int m_music = 0;
     float m_volume = 1.0f;
     std::vector<std::string> m_musicFiles;
+    double m_time;
 };
 
 template<class T>
@@ -360,7 +361,7 @@ void Visuals::effectRaindrops(std::vector<unsigned int>& buffer)
         colors[x] = HSVtoRGB(Color3(x / 50.0f, 1.0f, 1.0f));
     }
 
-    double time = m_sound.getTime(m_streamID);
+    double time = m_time;
     int t = time * m_fps / 10.0f;
     for (int y=0; y<m_height; y++) {
         for (int x=0; x<m_width; x++) {
@@ -427,7 +428,7 @@ void Visuals::rotate(std::vector<unsigned int>& buffer, float rot)
 
 void Visuals::fill(std::vector<unsigned int>& buffer)
 {
-    double time = m_sound.getTime(m_streamID);
+    double time = m_time;
     int t = time * m_fps;
 
     std::random_device r;
@@ -492,7 +493,12 @@ int Visuals::main(int argc, char* argv[])
     });
     
     m_streamID = m_sound.play("compo.ogg", true);
+    m_time = 0;
+    std::chrono::steady_clock::time_point last_tp = std::chrono::steady_clock::now();
+
     while (true) {
+        m_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp).count() / 1000.0f;
+
         MotionData md = amd;
         motion(md);
 
@@ -500,7 +506,9 @@ int Visuals::main(int argc, char* argv[])
         fill(buffer);
         try {
             send(buffer);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000/m_fps));
+            auto sleep = std::chrono::milliseconds(1000/m_fps) - std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp);
+            last_tp = std::chrono::steady_clock::now();
+            std::this_thread::sleep_for(sleep);
         } catch (const std::runtime_error& ex) {
             std::cout << ex.what() << std::endl;
         }
