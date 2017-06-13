@@ -42,6 +42,7 @@ private:
     bool getParamInt(mg_connection* conn, const std::string& name, int& result, size_t occurance);
 
     void effectRaindrops(std::vector<unsigned int>& buffer);
+    void effectLines(std::vector<unsigned int>& buffer, int x1, int y1, int x2, int y2, const Color3& color);
     void effectPlasma(std::vector<unsigned int>& buffer);
 
     int m_width = 25;
@@ -366,6 +367,27 @@ void Visuals::effectRaindrops(std::vector<unsigned int>& buffer)
             Color3 col1 = colors[x];
             col1 *= (fmod2((float)(y-t+offsets[x]), (float)m_height) / m_height - 0.5f) * 2.0f;
             buffer[y*m_width+x] = col1;
+        }
+    }
+}
+
+void Visuals::effectLines(std::vector<unsigned int>& buffer, int x1, int y1, int x2, int y2, const Color3& color)
+{
+    float dx = float(x2-x1)/float(y2-y1);
+    float dy = float(y2-y1)/float(x2-x1);
+    float len = length(x2-x1, y2-y1);
+
+    if (dx < dy) {
+        float x = x1;
+        for (int y=y1; y<=y2; y++) {
+            x += dx;
+            buffer[y * m_width + x] = color;
+        }
+    } else {
+        float y = y1;
+        for (int x=x1; x<=x2; x++) {
+            y += dy;
+            buffer[(int)y * m_width + x] = color;
         }
     }
 }
