@@ -325,22 +325,21 @@ float length(float x, float y)
 void Visuals::effectPlasma(std::vector<unsigned int>& buffer)
 {
     const float PI = 3.141592f;
-    double time = m_sound.getTime(m_streamID) * 1.0f;
     for (int y=0; y<m_height; y++)
         for (int x=0; x<m_width; x++) {
     
-            float color1 = (sin(dot(x+1.0f, sin(time), y+1.0f, cos(time))*0.6f+time)+1.0f)/2.0f;
+            float color1 = (sin(dot(x+1.0f, sin(m_time), y+1.0f, cos(m_time))*0.6f+m_time)+1.0f)/2.0f;
     
-            float centerX = m_width/2.0f + m_width/2.0f*sin(-time);
-            float centerY = m_height/2.0f + m_height/2.0f*cos(-time);
+            float centerX = m_width/2.0f + m_width/2.0f*sin(-m_time);
+            float centerY = m_height/2.0f + m_height/2.0f*cos(-m_time);
     
             float color2 = (cos(length(x - centerX, y - centerY)*0.3f)+1.0f)/2.0f;
     
             float color = (color1 + color2)/2.0f;
 
-            float red	= (cos(PI*color/0.5f+time)+1.0f)/2.0f;
-            float green	= (sin(PI*color/0.5f+time)+1.0f)/2.0f;
-            float blue	= (sin(time)+1.0f)/2.0f;
+            float red	= (cos(PI*color/0.5f+m_time)+1.0f)/2.0f;
+            float green	= (sin(PI*color/0.5f+m_time)+1.0f)/2.0f;
+            float blue	= (sin(m_time)+1.0f)/2.0f;
 
             buffer[y * m_width + x] = Color3(red, green, blue);
         }
@@ -361,8 +360,7 @@ void Visuals::effectRaindrops(std::vector<unsigned int>& buffer)
         colors[x] = HSVtoRGB(Color3(x / 50.0f, 1.0f, 1.0f));
     }
 
-    double time = m_time;
-    int t = time * m_fps / 10.0f;
+    int t = m_time * m_fps / 10.0f;
     for (int y=0; y<m_height; y++) {
         for (int x=0; x<m_width; x++) {
             float frac = fmod(t, 1.0f);
@@ -428,8 +426,7 @@ void Visuals::rotate(std::vector<unsigned int>& buffer, float rot)
 
 void Visuals::fill(std::vector<unsigned int>& buffer)
 {
-    double time = m_time;
-    int t = time * m_fps;
+    int t = m_time * m_fps;
 
     std::random_device r;
     std::default_random_engine e1(r());
