@@ -13,7 +13,6 @@ if (NOT WIN32)
 
     find_package(Threads)
     find_library(ATOMIC_LIBRARY NAMES atomic atomic.so.1 libatomic.so.1 HINTS /usr/lib/${CMAKE_C_LIBRARY_ARCHITECTURE} PATH_SUFFIXES )
-    find_library(SDL2_LIBRARY NAME SDL2 HINTS /usr/lib/${CMAKE_C_LIBRARY_ARCHITECTURE})
     find_library(PORTAUDIO_LIBRARY NAME portaudio HINTS /usr/lib/${CMAKE_C_LIBRARY_ARCHITECTURE})
     find_library(VORBIS_LIBRARY NAME vorbis HINTS /usr/lib/${CMAKE_C_LIBRARY_ARCHITECTURE})
     find_library(VORBIS_FILE_LIBRARY NAME vorbisfile HINTS /usr/lib/${CMAKE_C_LIBRARY_ARCHITECTURE})
@@ -28,6 +27,6 @@ if (NOT WIN32)
 	${ATOMIC_LIBRARY}
         ${PORTAUDIO_LIBRARY}
         ${VORBIS_LIBRARY}
-        ${VORBIS_FILE_LIBRARY}
-        ${SDL2_LIBRARY})
+        ${VORBIS_FILE_LIBRARY})
 endif()
+
