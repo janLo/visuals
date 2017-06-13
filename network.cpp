@@ -2,6 +2,8 @@
 #include "network.hpp"
 
 #include <sstream>
+#include <cerrno>
+#include <cstring>
 #include <stdexcept>
 #include <algorithm>
 
@@ -66,7 +68,7 @@ void Network::listen(int port)
 	
 	if(bind(m_socket, (sockaddr *)&m_sockaddr_in, sizeof(m_sockaddr_in)) == SOCKET_ERROR) {
         std::stringstream ss;
-        ss << "Error: bind() failed: " << errno;
+        ss << "Error: bind() failed: " << errno << " (" << std::strerror(errno) << ")";
         throw std::runtime_error(ss.str());
 	}
 }
@@ -76,7 +78,7 @@ void Network::send(const std::vector<char> message)
     if (sendto(m_socket, message.data(), message.size(), 0, (sockaddr*)&m_sockaddr_in, sizeof(sockaddr_in)) == SOCKET_ERROR)
     {
         std::stringstream ss;
-        ss << "Error: sendto() failed: " << errno;
+        ss << "Error: sendto() failed: " << errno << " (" << std::strerror(errno) << ")";
         throw std::runtime_error(ss.str());
     }
 }
@@ -88,7 +90,7 @@ void Network::send(const std::vector<char> message, size_t offset, size_t count)
     if (sendto(m_socket, message.data() + offset, count, 0, (sockaddr*)&m_sockaddr_in, sizeof(sockaddr_in)) == SOCKET_ERROR)
     {
         std::stringstream ss;
-        ss << "Error: sendto() failed: " << errno;
+        ss << "Error: sendto() failed: " << errno << " (" << std::strerror(errno) << ")";
         throw std::runtime_error(ss.str());
     }
 }
@@ -103,7 +105,7 @@ std::vector<char> Network::recv()
     if ((size = recvfrom(m_socket, buffer.data(), buffer.size(), 0, (sockaddr*)&m_sockaddr_in, &len)) == SOCKET_ERROR)
     {
         std::stringstream ss;
-        ss << "Error: recvfrom() failed: " << errno;
+        ss << "Error: recvfrom() failed: " << errno << " (" << std::strerror(errno) << ")";
         throw std::runtime_error(ss.str());
     }
     return buffer;
