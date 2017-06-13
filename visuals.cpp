@@ -42,6 +42,7 @@ private:
     bool getParamInt(mg_connection* conn, const std::string& name, int& result, size_t occurance);
 
     void effectRaindrops(std::vector<unsigned int>& buffer);
+    void effectPlasma(std::vector<unsigned int>& buffer);
 
     int m_width = 25;
     int m_height = 20;
@@ -306,6 +307,41 @@ void Visuals::send(const std::vector<unsigned int>& buffer)
     }
     m_network.send(out, 0, 800);
     m_network.send(out, 800, 700);
+}
+
+float dot(float x1, float y1, float x2, float y2)
+{
+    return sqrt(x1*x2 + y1*y2);
+}
+
+float length(float x, float y)
+{
+    return sqrt(x*x + y*y);
+}
+
+void Visuals::effectPlasma(std::vector<unsigned int>& buffer)
+{
+    const float PI = 3.141592f;
+    double time = m_sound.getTime(m_streamID) * 1.0f;
+    for (int y=0; y<m_height; y++)
+        for (int x=0; x<m_width; x++) {
+    
+            float color1 = (sin(dot(x+1.0f, sin(time), y+1.0f, cos(time))*0.6f+time)+1.0f)/2.0f;
+    
+            float centerX = m_width/2.0f + m_width/2.0f*sin(-time);
+            float centerY = m_height/2.0f + m_height/2.0f*cos(-time);
+    
+            float color2 = (cos(length(x - centerX, y - centerY)*0.3f)+1.0f)/2.0f;
+    
+            float color = (color1 + color2)/2.0f;
+
+            float red	= (cos(PI*color/0.5f+time)+1.0f)/2.0f;
+            float green	= (sin(PI*color/0.5f+time)+1.0f)/2.0f;
+            float blue	= (sin(time)+1.0f)/2.0f;
+
+            buffer[y * m_width + x] = Color3(red, green, blue);
+        }
+    
 }
 
 void Visuals::effectRaindrops(std::vector<unsigned int>& buffer)
