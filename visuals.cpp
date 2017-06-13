@@ -23,6 +23,12 @@ struct MotionData {
 };
 #pragma pack()
 
+class Effect {
+public:
+    virtual ~Effect() {}
+    virtual void fill(std::vector<unsigned int>& buffer, double time) {};
+};
+
 class Visuals : public CivetHandler {
 public:
     Visuals();
@@ -30,7 +36,7 @@ public:
 
 private:
     void send(const std::vector<unsigned int>& buffer);
-    void fill(std::vector<unsigned int>& buffer);
+    void fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects);
     void rotate(std::vector<unsigned int>& buffer, float rot);
     void motion(const MotionData& motionData);
     void anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time);
@@ -133,16 +139,80 @@ Color3 HSVtoRGB(const Color3& hsv)
     return out;
 }
 
-class Effect {
+class Raindrop
+{
+    unsigned int m_col;
+    double m_speed;
+    double m_start;
+    Color3 m_color;
+
 public:
-    virtual ~Effect() {}
-    virtual void fill(std::vector<unsigned int>& buffer, double time);
+
+    Raindrop(unsigned int col, double start, Color3 color)
+        : m_col(col), m_speed(1 + (rand() % 7) ), m_start(start), m_color(color)
+    {
+    }
+
+    bool draw(std::vector<unsigned int>& buffer, const unsigned int height, const unsigned int width, const double time) const
+    {
+        double elapsed = time - m_start;
+
+        if (0 > elapsed) {
+            return true;
+        }
+
+        double step_time = m_speed / height;
+        unsigned int length = height / std::min(2.0, m_speed*0.5f);
+
+        double offset = (time - m_start) / step_time;
+        double step = std::floor(offset);
+
+        if ((step - length) > height) {
+            return false;
+        }
+
+        for (int pos = length - 1; pos >= 0; --pos) {
+            int position = offset - pos;
+            if (position < 0 || position >= height) {
+                continue;
+            }
+            buffer[width * position + m_col] = m_color * float(((float(length - pos)) / length) * std::min(1.0f, (float(length) /  (1.5f * pos))));
+        }
+        return true;
+    }
+
+    void reset(const double time)
+    {
+        m_start = time;
+        m_speed = 1 + rand() % 7;
+    }
+
 };
 
 class EffectRaindrops : public Effect {
+    unsigned int m_height;
+    unsigned int m_width;
+    std::vector<Raindrop> drops;
+
+public:
+
+    EffectRaindrops(unsigned int height, unsigned int width, double time)
+    : m_height(height), m_width(width)
+    {
+        srand(0);
+        for (unsigned int col = 0; col < width; ++col) {
+            Color3 color = HSVtoRGB(Color3(col / 50.0f, 1.0f, 1.0f));
+            drops.push_back(Raindrop(col, time + (rand() % 25) / 10.0f, color));
+        }
+    }
+
     void fill(std::vector<unsigned int>& buffer, double time) override
     {
-    
+        for (auto& drop : drops) {
+            if (!drop.draw(buffer, m_height, m_width, time)) {
+                drop.reset(time + (rand() % 50) / 10.0f);
+            }
+        }
     }
 };
 
@@ -406,6 +476,12 @@ void Visuals::add(std::vector<unsigned int>& result, const std::vector<unsigned 
         result[i] = Color3(buf1[i]) * a + Color3(buf2[i]) * b;
 }
 
+void addToBuffer(std::vector<unsigned int>& result, const std::vector<unsigned int>& buf, float coeff) {
+    for (unsigned int i = 0; i < result.size(); ++i) {
+        result[i] += coeff * buf[i];
+    }
+}
+
 void Visuals::rotate(std::vector<unsigned int>& buffer, float rot)
 {
     rot = fmod2(rot / 3.141592f / 2.0f, 1.0f);
@@ -424,7 +500,7 @@ void Visuals::rotate(std::vector<unsigned int>& buffer, float rot)
     std::copy(buf2.begin(), buf2.end(), buffer.begin());
 }
 
-void Visuals::fill(std::vector<unsigned int>& buffer)
+void Visuals::fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects)
 {
     int t = m_time * m_fps;
 
@@ -433,12 +509,17 @@ void Visuals::fill(std::vector<unsigned int>& buffer)
     std::uniform_int_distribution<int> uniform_dist(0, 0xffffff);
 
     buffer.resize(m_width * m_height);
-    std::vector<unsigned int> buf1, buf2;
-    buf1.resize(m_width * m_height);
+
+    std::vector<unsigned int> buf2;
     buf2.resize(m_width * m_height);
-    effectRaindrops(buf1);
     effectPlasma(buf2);
-    add(buffer, buf1, buf2, 0.0f, 0.1f);
+    addToBuffer(buffer, buf2, 0.1f);
+    for (auto effect : effects) {
+        std::vector<unsigned int> buf(m_width * m_height);
+        effect->fill(buf, m_time);
+        addToBuffer(buffer, buf, 1.0f);
+
+    }
     effectLines(buffer, 0, 0, 00, 19, Color3(1, 1, 1));
     rotate(buffer, m_x/*time / 10.0f*/);
 }
@@ -493,14 +574,17 @@ int Visuals::main(int argc, char* argv[])
     m_time = 0;
     std::chrono::steady_clock::time_point last_tp = std::chrono::steady_clock::now();
 
+    std::vector<std::shared_ptr<Effect>> effects;
+    effects.push_back(std::make_shared<EffectRaindrops>(m_height, m_width, m_time));
+
     while (true) {
-        m_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp).count() / 1000.0f;
+	m_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp).count() / 1000.0f;
 
         MotionData md = amd;
         motion(md);
 
         buffer.clear();
-        fill(buffer);
+        fill(buffer, effects);
         try {
             send(buffer);
             auto sleep = std::chrono::milliseconds(1000/m_fps);
