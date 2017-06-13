@@ -435,7 +435,13 @@ void Visuals::fill(std::vector<unsigned int>& buffer)
     std::uniform_int_distribution<int> uniform_dist(0, 0xffffff);
 
     buffer.resize(m_width * m_height);
-    effectRaindrops(buffer);
+    std::vector<unsigned int> buf1, buf2;
+    buf1.resize(m_width * m_height);
+    buf2.resize(m_width * m_height);
+    effectRaindrops(buf1);
+    effectPlasma(buf2);
+    add(buffer, buf1, buf2, 0.0f, 0.1f);
+    effectLines(buffer, 0, 0, 00, 19, Color3(1, 1, 1));
     rotate(buffer, m_x/*time / 10.0f*/);
 }
 
