@@ -503,7 +503,7 @@ int Visuals::main(int argc, char* argv[])
         fill(buffer);
         try {
             send(buffer);
-            auto sleep = std::chrono::milliseconds(1000/m_fps) - std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp);
+            auto sleep = std::chrono::milliseconds(1000/m_fps);
             last_tp = std::chrono::steady_clock::now();
             std::this_thread::sleep_for(sleep);
         } catch (const std::runtime_error& ex) {
