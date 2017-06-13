@@ -41,6 +41,7 @@ private:
     bool getParamFloat(mg_connection* conn, const std::string& name, float& result, size_t occurance);
     bool getParamInt(mg_connection* conn, const std::string& name, int& result, size_t occurance);
 
+    void add(std::vector<unsigned int>& result, const std::vector<unsigned int>& buf1, const std::vector<unsigned int>& buf2, float a = 0.5f, float b = 0.5f);
     void effectRaindrops(std::vector<unsigned int>& buffer);
     void effectLines(std::vector<unsigned int>& buffer, int x1, int y1, int x2, int y2, const Color3& color);
     void effectPlasma(std::vector<unsigned int>& buffer);
@@ -398,6 +399,12 @@ void Visuals::anim(std::vector<unsigned int>& buffer, std::vector<char> image, f
         for (int x=0; x<m_height; x++) {
         }
     }
+}
+
+void Visuals::add(std::vector<unsigned int>& result, const std::vector<unsigned int>& buf1, const std::vector<unsigned int>& buf2, float a, float b)
+{
+    for (int i=0; i<result.size(); i++)
+        result[i] = Color3(buf1[i]) * a + Color3(buf2[i]) * b;
 }
 
 void Visuals::rotate(std::vector<unsigned int>& buffer, float rot)
