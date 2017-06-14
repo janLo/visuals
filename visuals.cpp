@@ -50,7 +50,6 @@ private:
     bool getParamFloat(mg_connection* conn, const std::string& name, float& result, size_t occurance);
     bool getParamInt(mg_connection* conn, const std::string& name, int& result, size_t occurance);
 
-    void add(std::vector<unsigned int>& result, const std::vector<unsigned int>& buf1, const std::vector<unsigned int>& buf2, float a = 0.5f, float b = 0.5f);
 
     int m_width = 25;
     int m_height = 20;
@@ -253,18 +252,6 @@ void Visuals::anim(std::vector<unsigned int>& buffer, std::vector<char> image, f
     for (int y=0; y<m_width; y++) {
         for (int x=0; x<m_height; x++) {
         }
-    }
-}
-
-void Visuals::add(std::vector<unsigned int>& result, const std::vector<unsigned int>& buf1, const std::vector<unsigned int>& buf2, float a, float b)
-{
-    for (int i=0; i<result.size(); i++)
-        result[i] = Color3(buf1[i]) * a + Color3(buf2[i]) * b;
-}
-
-void addToBuffer(std::vector<unsigned int>& result, const std::vector<unsigned int>& buf, float coeff) {
-    for (unsigned int i = 0; i < result.size(); ++i) {
-        result[i] += coeff * Color3(buf[i]);
     }
 }
 
