@@ -3,3 +3,5 @@ build
 *.suo
 *.sdf
 *.dll
+*.swp
+*.orig
