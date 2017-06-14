@@ -41,7 +41,10 @@ public:
     bool operator == ( const Color4& ) const;
     bool operator != ( const Color4& ) const;
 
-    float r, g, b, a;
+    float r = 0.0f;
+    float g = 0.0f;
+    float b = 0.0f;
+    float a = 1.0f;
 
 private:  // (not allowed!)
     // unary operators
@@ -65,7 +68,7 @@ private:  // (not allowed!)
 class Color3 : public Color4 {
 
 public:
-    Color3();
+    Color3() {}
     explicit Color3( unsigned int rgb );
     Color3( float r, float g, float b ) : Color4(r, g, b, 1) {}
 
@@ -184,12 +187,6 @@ Color4::operator != ( const Color4& c ) const
 //--------------------------
 // 3D Color
 //--------------------------
-
-inline
-Color3::Color3()
-{
-    a = 1;
-}
 
 inline
 Color3::Color3( unsigned int rgb )

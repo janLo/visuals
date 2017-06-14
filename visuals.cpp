@@ -12,6 +12,15 @@
 #include <algorithm>
 #include <atomic>
 
+#include "color_utils.hpp"
+
+#include "effect.hpp"
+#include "raindrop_effect.hpp"
+#include "rotation_effect.hpp"
+#include "line_effect.hpp"
+#include "plasma_effect.hpp"
+
+
 /*#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"*/
 
@@ -23,17 +32,16 @@ struct MotionData {
 };
 #pragma pack()
 
+
 class Visuals : public CivetHandler {
 public:
     Visuals();
     int main(int argc, char* argv[]);
 
 private:
-    void send(const std::vector<unsigned int>& buffer);
-    void fill(std::vector<unsigned int>& buffer);
-    void rotate(std::vector<unsigned int>& buffer, float rot);
-    void motion(const MotionData& motionData);
-    void anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time);
+    void send(const EffectBuffer& buffer);
+    void fill(EffectBuffer& buffer, std::vector<std::shared_ptr<Effect>>& effects, const EffectState& state);
+    RotationData motion(const MotionData& motionData);
     void setBrightness(float brightness);
 
     bool handleGet(CivetServer* server, mg_connection* conn);
@@ -41,21 +49,19 @@ private:
     bool getParamFloat(mg_connection* conn, const std::string& name, float& result, size_t occurance);
     bool getParamInt(mg_connection* conn, const std::string& name, int& result, size_t occurance);
 
-    void effectRaindrops(std::vector<unsigned int>& buffer);
 
     int m_width = 25;
     int m_height = 20;
     int m_roof = 10;
     int m_fps = 60;
-    std::string m_host = "192.168.1.111";
+    std::string m_host = "192.168.1.20";
     std::string m_hostMotion = "192.168.1.112";
     int m_port = 7000;
     int m_portControl = 7001;
-    int m_portMotion = 7000;
+    int m_portMotion = 7002;
     int m_portMotionControl = 7001;
     float m_brightness = 0.1f;
     std::vector<int> m_leds;
-    float m_x, m_y, m_z; // motion controller euler angles
 
     Network m_network;
     Network m_networkControl;
@@ -65,82 +71,11 @@ private:
     int m_music = 0;
     float m_volume = 1.0f;
     std::vector<std::string> m_musicFiles;
+    double m_time;
 };
 
-template<class T>
-T fmod2(T x, T y)
-{
-    if (x >= T(0))
-        return std::fmod(x, y);
-    return std::fmod(x, y) + y;
-}
 
-Color3 saturate(const Color3& col)
-{
-    return Color3(
-        std::max(0.0f, std::min(1.0f, col.r)),
-        std::max(0.0f, std::min(1.0f, col.g)),
-        std::max(0.0f, std::min(1.0f, col.b))
-        );
-}
-/*
-Color3 hue(float h)
-{
-    float r = abs(h * 6 - 3) - 1;
-    float g = 2 - abs(h * 6 - 2);
-    float b = 2 - abs(h * 6 - 4);
-    return saturate(Color3(r, g, b));
-}
 
-Color3 HSVtoRGB(const Color3& hsv)
-{
-    return Color3(((hue(hsv.r) - 1.0f) * hsv.g + 1.0f) * hsv.b);
-}
-*/
-Color3 HSVtoRGB(const Color3& hsv)
-{
-    Color3 out;
-    float h = hsv.r;
-    float s = hsv.g;
-    float v = hsv.b;
-    if (s == 0.0f)
-    {
-        // gray
-        out.r = out.g = out.b = v;
-        return out;
-    }
-
-    h = fmodf(h, 1.0f) / (60.0f/360.0f);
-    int   i = (int)h;
-    float f = h - (float)i;
-    float p = v * (1.0f - s);
-    float q = v * (1.0f - s * f);
-    float t = v * (1.0f - s * (1.0f - f));
-
-    switch (i)
-    {
-    case 0: out.r = v; out.g = t; out.b = p; break;
-    case 1: out.r = q; out.g = v; out.b = p; break;
-    case 2: out.r = p; out.g = v; out.b = t; break;
-    case 3: out.r = p; out.g = q; out.b = v; break;
-    case 4: out.r = t; out.g = p; out.b = v; break;
-    case 5: default: out.r = v; out.g = p; out.b = q; break;
-    }
-    return out;
-}
-
-class Effect {
-public:
-    virtual ~Effect() {}
-    virtual void fill(std::vector<unsigned int>& buffer, double time);
-};
-
-class EffectRaindrops : public Effect {
-    void fill(std::vector<unsigned int>& buffer, double time) override
-    {
-    
-    }
-};
 
 Visuals::Visuals()
 {
@@ -160,16 +95,6 @@ Visuals::Visuals()
     m_server->addHandler("/music/previous", this);
 
     // init led lookup table
-/*    for (int x=0, i=0; x < m_width; x++) {
-        int off = (x / 5) % 2;
-        for (int y=0; y < m_height; y++, i++) {
-            if ((x + off) % 2 == 0)
-                m_leds.push_back(x * m_height + y);
-            else
-                m_leds.push_back(x * m_height + (m_height - 1) - y);                
-        }
-    }*/
-
     m_leds = { 0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400, 425, 450, 475 };
     for (int x=1; x<25; x++) {
         for (int y=0; y<20; y++) {
@@ -283,7 +208,7 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
     return true;
 }
 
-void Visuals::send(const std::vector<unsigned int>& buffer)
+void Visuals::send(const EffectBuffer& buffer)
 {
     std::vector<char> out;
     out.resize(m_width * m_height * 3);
@@ -308,70 +233,15 @@ void Visuals::send(const std::vector<unsigned int>& buffer)
     m_network.send(out, 800, 700);
 }
 
-void Visuals::effectRaindrops(std::vector<unsigned int>& buffer)
+void Visuals::fill(EffectBuffer& buffer, std::vector<std::shared_ptr<Effect>>& effects, const EffectState& state)
 {
-    srand(0);
-    std::array<int, 25> offsets;
-    std::array<Color3, 25> colors;
-    for (int x=0; x<m_width; x++) {
-        offsets[x] = rand() % 10;
-        colors[x] = Color3(((float)rand()/RAND_MAX) / 2 + 0.5f, ((float)rand()/RAND_MAX / 4) / 2 + 0.5f, ((float)rand()/RAND_MAX / 4) / 2 + 0.5f);
-/*        colors[x].r = fmod(x / 25.0f, 1.0f); //(float)rand() / RAND_MAX / 2 + 0.5f;
-        colors[x].g = fmod(x / 25.0f+0.33, 1.0f); // (float)rand() / RAND_MAX / 8 + 0.5f;
-        colors[x].b = fmod(x / 25.0f+0.66, 1.0f); // (float)rand() / RAND_MAX / 8 + 0.5f;*/
-        colors[x] = HSVtoRGB(Color3(x / 50.0f, 1.0f, 1.0f));
-    }
-
-    double time = m_sound.getTime(m_streamID);
-    int t = time * m_fps / 10.0f;
-    for (int y=0; y<m_height; y++) {
-        for (int x=0; x<m_width; x++) {
-            float frac = fmod(t, 1.0f);
-            Color3 col1 = colors[x];
-            col1 *= (fmod2((float)(y-t+offsets[x]), (float)m_height) / m_height - 0.5f) * 2.0f;
-            buffer[y*m_width+x] = col1;
-        }
-    }
-}
-
-void Visuals::anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time)
-{
-    for (int y=0; y<m_width; y++) {
-        for (int x=0; x<m_height; x++) {
-        }
-    }
-}
-
-void Visuals::rotate(std::vector<unsigned int>& buffer, float rot)
-{
-    rot = fmod2(rot / 3.141592f / 2.0f, 1.0f);
-    std::cout << m_x << " " << " " << m_y << " " << " " << m_z << " " << rot << std::endl;
-    std::vector<unsigned int> buf2;
-    buf2.resize(buffer.size());
-    for (int x=0; x<m_width; x++) {
-        for (int y=0; y<m_height; y++) {
-            float frac = fmod(rot * m_width, 1.0f);
-            Color3 col1(buffer[y * m_width + (x + size_t(rot * m_width) + 0) % m_width]);
-            Color3 col2(buffer[y * m_width + (x + size_t(rot * m_width) + 1) % m_width]);
-            buf2[y * m_width + x] = /*col1 + (col2 - col1) * frac;*/ col1 * (1 - frac) + col2 * frac;
-        }
-    }
-
-    std::copy(buf2.begin(), buf2.end(), buffer.begin());
-}
-
-void Visuals::fill(std::vector<unsigned int>& buffer)
-{
-    double time = m_sound.getTime(m_streamID);
-    int t = time * m_fps;
-
     std::random_device r;
     std::default_random_engine e1(r());
     std::uniform_int_distribution<int> uniform_dist(0, 0xffffff);
 
-    buffer.resize(m_width * m_height);
-    effectRaindrops(buffer);
-    rotate(buffer, m_x/*time / 10.0f*/);
+    for (auto effect : effects) {
+        effect->fill(buffer, state);
+    }
 }
 
 void Visuals::setBrightness(float brightness)
@@ -382,22 +252,22 @@ void Visuals::setBrightness(float brightness)
     m_networkControl.send(control);
 }
 
-void Visuals::motion(const MotionData& motionData)
+RotationData Visuals::motion(const MotionData& motionData)
 {
     float xs = motionData.x / 16384.0f;
     float ys = motionData.y / 16384.0f;
     float zs = motionData.z / 16384.0f;
     float ws = motionData.w / 16384.0f;
-    m_x = atan2(2*xs*ys - 2*ws*zs, 2*ws*ws + 2*xs*xs - 1);  // psi
-    m_y = -asin(2*xs*zs + 2*ws*ys);                         // theta
-    m_z = atan2(2*ys*zs - 2*ws*xs, 2*ws*ws + 2*zs*zs - 1);  // phi
-    m_x = m_x + 3.141592;
-    //std::cout << motionData.timestamp << " " << xs << " " << ys << " " << zs << " " << ws << " " << m_x / 3.141592f * 180.0f << " " << m_y / 3.141592f * 180.0f << " " << m_z / 3.141592f * 180.0f << std::endl;
+
+    return RotationData(
+        atan2(2*(xs*ys + ws*zs), 1-2*(ws*ws + xs*xs)),  // psi
+        -asin(2*xs*zs + 2*ws*ys),                         // theta
+        atan2(2*ys*zs - 2*ws*xs, 2*ws*ws + 2*zs*zs - 1));  // phi
 }
 
 int Visuals::main(int argc, char* argv[])
 {
-    std::vector<unsigned int> buffer;
+    EffectBuffer buffer;
     m_network.connect(m_host, m_port);
     //std::cout << "sockname: " << m_network.getSockName() << std::endl;
     m_networkControl.connect(m_host, m_portControl);
@@ -419,15 +289,34 @@ int Visuals::main(int argc, char* argv[])
     });
     
     m_streamID = m_sound.play("compo.ogg", true);
+    m_time = 0;
+    std::chrono::steady_clock::time_point last_tp = std::chrono::steady_clock::now();
+
+    std::vector<std::shared_ptr<Effect>> effects;
+    effects.push_back(
+            std::make_shared<AddEffect>(
+                std::make_shared<PlasmaEffect>(), 0.2f));
+    effects.push_back(
+            std::make_shared<AddEffect>(
+                std::make_shared<RaindropEffect>(m_width, m_time), 0.7f));
+    effects.push_back(
+            std::make_shared<LineEffect>(Point(0, 0), Point(0, 19), Color3(1, 1, 1)));
+    effects.push_back(
+            std::make_shared<RotationEffect>());
+
     while (true) {
+    m_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp).count() / 1000.0f;
+
         MotionData md = amd;
-        motion(md);
+        EffectState state(m_time, motion(md));
 
         buffer.clear();
-        fill(buffer);
+        fill(buffer, effects, state);
         try {
             send(buffer);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000/m_fps));
+            auto sleep = std::chrono::milliseconds(1000/m_fps);
+            last_tp = std::chrono::steady_clock::now();
+            std::this_thread::sleep_for(sleep);
         } catch (const std::runtime_error& ex) {
             std::cout << ex.what() << std::endl;
         }
