@@ -44,7 +44,7 @@ struct RotationData
 struct EffectState
 {
     const double time;
-    const RotationData& rotation;
+    const RotationData rotation;
 
     EffectState(const double time, const RotationData& rotation)
     : time(time), rotation(rotation)
