@@ -18,6 +18,17 @@ struct EffectState
     {}
 };
 
+struct Point
+{
+    unsigned int x;
+    unsigned int y;
+
+    Point(unsigned int x, unsigned int y)
+    : x(x), y(y)
+    {}
+};
+
+
 class Effect {
 public:
     virtual ~Effect() {}

@@ -17,6 +17,7 @@
 #include "effect.hpp"
 #include "raindrop_effect.hpp"
 #include "rotation_effect.hpp"
+#include "line_effect.hpp"
 
 
 /*#define STB_IMAGE_IMPLEMENTATION
@@ -51,7 +52,6 @@ private:
 
     void add(std::vector<unsigned int>& result, const std::vector<unsigned int>& buf1, const std::vector<unsigned int>& buf2, float a = 0.5f, float b = 0.5f);
     void effectRaindrops(std::vector<unsigned int>& buffer);
-    void effectLines(std::vector<unsigned int>& buffer, int x1, int y1, int x2, int y2, const Color3& color);
     void effectPlasma(std::vector<unsigned int>& buffer);
 
     int m_width = 25;
@@ -253,10 +253,6 @@ float dot(float x1, float y1, float x2, float y2)
     return sqrt(x1*x2 + y1*y2);
 }
 
-float length(float x, float y)
-{
-    return sqrt(x*x + y*y);
-}
 
 void Visuals::effectPlasma(std::vector<unsigned int>& buffer)
 {
@@ -307,26 +303,6 @@ void Visuals::effectRaindrops(std::vector<unsigned int>& buffer)
     }
 }
 
-void Visuals::effectLines(std::vector<unsigned int>& buffer, int x1, int y1, int x2, int y2, const Color3& color)
-{
-    float dx = float(x2-x1)/float(y2-y1);
-    float dy = float(y2-y1)/float(x2-x1);
-    float len = length(x2-x1, y2-y1);
-
-    if (dx < dy) {
-        float x = x1;
-        for (int y=y1; y<=y2; y++) {
-            x += dx;
-            buffer[y * m_width + x] = color;
-        }
-    } else {
-        float y = y1;
-        for (int x=x1; x<=x2; x++) {
-            y += dy;
-            buffer[(int)y * m_width + x] = color;
-        }
-    }
-}
 
 void Visuals::anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time)
 {
@@ -384,8 +360,6 @@ void Visuals::fill(std::vector<unsigned int>& buffer, std::vector<std::shared_pt
     for (auto effect : effects) {
         effect->fill(buffer, state);
     }
-    effectLines(buffer, 0, 0, 00, 19, Color3(1, 1, 1));
-    rotate(buffer, m_x/*time / 10.0f*/);
 }
 
 void Visuals::setBrightness(float brightness)
@@ -442,6 +416,8 @@ int Visuals::main(int argc, char* argv[])
     effects.push_back(
             std::make_shared<AddEffect>(
                 std::make_shared<EffectRaindrops>(m_height, m_width, m_time), 0.7f));
+    effects.push_back(
+            std::make_shared<LineEffect>(Point(0, 0), Point(0, 19), Color3(1, 1, 1), m_width));
     effects.push_back(
             std::make_shared<RotationEffect>(m_width, m_height));
 

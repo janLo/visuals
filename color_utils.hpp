@@ -5,6 +5,13 @@
 #include <algorithm>
 #include <cmath>
 
+
+float inline length(float x, float y)
+{
+    return sqrt(x*x + y*y);
+}
+
+
 template<class T>
 inline T fmod2(T x, T y)
 {
