@@ -277,31 +277,6 @@ void Visuals::effectPlasma(std::vector<unsigned int>& buffer)
     
 }
 
-void Visuals::effectRaindrops(std::vector<unsigned int>& buffer)
-{
-    srand(0);
-    std::array<int, 25> offsets;
-    std::array<Color3, 25> colors;
-    for (int x=0; x<m_width; x++) {
-        offsets[x] = rand() % 10;
-        colors[x] = Color3(((float)rand()/RAND_MAX) / 2 + 0.5f, ((float)rand()/RAND_MAX / 4) / 2 + 0.5f, ((float)rand()/RAND_MAX / 4) / 2 + 0.5f);
-/*        colors[x].r = fmod(x / 25.0f, 1.0f); //(float)rand() / RAND_MAX / 2 + 0.5f;
-        colors[x].g = fmod(x / 25.0f+0.33, 1.0f); // (float)rand() / RAND_MAX / 8 + 0.5f;
-        colors[x].b = fmod(x / 25.0f+0.66, 1.0f); // (float)rand() / RAND_MAX / 8 + 0.5f;*/
-        colors[x] = HSVtoRGB(Color3(x / 50.0f, 1.0f, 1.0f));
-    }
-
-    int t = m_time * m_fps / 10.0f;
-    for (int y=0; y<m_height; y++) {
-        for (int x=0; x<m_width; x++) {
-            float frac = fmod(t, 1.0f);
-            Color3 col1 = colors[x];
-            col1 *= (fmod2((float)(y-t+offsets[x]), (float)m_height) / m_height - 0.5f) * 2.0f;
-            buffer[y*m_width+x] = col1;
-        }
-    }
-}
-
 
 void Visuals::anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time)
 {
