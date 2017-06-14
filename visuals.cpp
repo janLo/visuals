@@ -96,16 +96,6 @@ Visuals::Visuals()
     m_server->addHandler("/music/previous", this);
 
     // init led lookup table
-/*    for (int x=0, i=0; x < m_width; x++) {
-        int off = (x / 5) % 2;
-        for (int y=0; y < m_height; y++, i++) {
-            if ((x + off) % 2 == 0)
-                m_leds.push_back(x * m_height + y);
-            else
-                m_leds.push_back(x * m_height + (m_height - 1) - y);                
-        }
-    }*/
-
     m_leds = { 0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400, 425, 450, 475 };
     for (int x=1; x<25; x++) {
         for (int y=0; y<20; y++) {
