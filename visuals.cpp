@@ -40,8 +40,8 @@ public:
 
 private:
     void send(const std::vector<unsigned int>& buffer);
-    void fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects);
-    void motion(const MotionData& motionData);
+    void fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects, const EffectState& state);
+    RotationData motion(const MotionData& motionData);
     void anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time);
     void setBrightness(float brightness);
 
@@ -63,7 +63,6 @@ private:
     int m_portMotionControl = 7001;
     float m_brightness = 0.1f;
     std::vector<int> m_leds;
-    RotationData m_rotation; // motion controller euler angles
 
     Network m_network;
     Network m_networkControl;
@@ -80,7 +79,6 @@ private:
 
 
 Visuals::Visuals()
-: m_rotation(0.0f,0.0f,0.0f)
 {
     // start webserver
     std::string path = "data";
@@ -257,9 +255,8 @@ void Visuals::anim(std::vector<unsigned int>& buffer, std::vector<char> image, f
 }
 
 
-void Visuals::fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects)
+void Visuals::fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects, const EffectState& state)
 {
-    EffectState state(m_time, m_rotation);
     int t = m_time * m_fps;
 
     std::random_device r;
@@ -281,14 +278,14 @@ void Visuals::setBrightness(float brightness)
     m_networkControl.send(control);
 }
 
-void Visuals::motion(const MotionData& motionData)
+RotationData Visuals::motion(const MotionData& motionData)
 {
     float xs = motionData.x / 16384.0f;
     float ys = motionData.y / 16384.0f;
     float zs = motionData.z / 16384.0f;
     float ws = motionData.w / 16384.0f;
 
-    m_rotation = RotationData(
+    return RotationData(
         atan2(2*(xs*ys + ws*zs), 1-2*(ws*ws + xs*xs)),  // psi
         -asin(2*xs*zs + 2*ws*ys),                         // theta
         atan2(2*ys*zs - 2*ws*xs, 2*ws*ws + 2*zs*zs - 1));  // phi
@@ -337,10 +334,10 @@ int Visuals::main(int argc, char* argv[])
 	m_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp).count() / 1000.0f;
 
         MotionData md = amd;
-        motion(md);
+	EffectState state(m_time, motion(md));
 
         buffer.clear();
-        fill(buffer, effects);
+        fill(buffer, effects, state);
         try {
             send(buffer);
             auto sleep = std::chrono::milliseconds(1000/m_fps);
