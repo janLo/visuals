@@ -15,19 +15,17 @@ public:
 
     Raindrop(unsigned int col, double start, Color3 color);
 
-    bool draw(EffectBuffer& buffer, const unsigned int height, const unsigned int width, const double time) const;
+    bool draw(EffectBuffer& buffer, const double time) const;
     void reset(const double time);
 
 };
 
 class RaindropEffect : public Effect {
-    unsigned int m_height;
-    unsigned int m_width;
     std::vector<Raindrop> drops;
 
 public:
 
-    RaindropEffect(unsigned int height, unsigned int width, double time);
+    RaindropEffect(unsigned int width, double time);
     void fill(EffectBuffer& buffer, const EffectState& state) override;
     ~RaindropEffect() {}
 };

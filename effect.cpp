@@ -6,10 +6,10 @@ AddEffect::AddEffect(std::shared_ptr<Effect> base, const float coeff)
 {}
 
 void AddEffect::fill(EffectBuffer& buffer, const EffectState& state) {
-    EffectBuffer temp(buffer.size());
+    EffectBuffer temp;
     m_base->fill(temp, state);
-    for (int i = 0; i < buffer.size(); ++i) {
-        buffer[i] += Color3(temp[i]) * m_coeff;
+    for (size_t i = 0; i < buffer.size(); ++i) {
+        buffer[i] += temp[i] * m_coeff;
     }
 }
 

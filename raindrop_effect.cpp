@@ -9,7 +9,7 @@ Raindrop::Raindrop(unsigned int col, double start, Color3 color)
 {
 }
 
-bool Raindrop::draw(EffectBuffer& buffer, const unsigned int height, const unsigned int width, const double time) const
+bool Raindrop::draw(EffectBuffer& buffer, const double time) const
 {
     double elapsed = time - m_start;
 
@@ -17,22 +17,22 @@ bool Raindrop::draw(EffectBuffer& buffer, const unsigned int height, const unsig
         return true;
     }
 
-    double step_time = m_speed / height;
-    unsigned int length = height / std::min(2.0, m_speed*0.5f);
+    double step_time = m_speed / buffer.height();
+    unsigned int length = buffer.height() / std::min(2.0, m_speed*0.5f);
 
     double offset = (time - m_start) / step_time;
     double step = std::floor(offset);
 
-    if ((step - length) > height) {
+    if ((step - length) > buffer.height()) {
         return false;
     }
 
     for (int pos = length - 1; pos >= 0; --pos) {
         int position = offset - pos;
-        if (position < 0 || position >= height) {
+        if (position < 0 || position >= buffer.height()) {
             continue;
         }
-        buffer[width * position + m_col] = m_color * float(((float(length - pos)) / length) * std::min(1.0f, (float(length) /  (1.5f * pos))));
+        buffer.set(m_col, position, m_color * float(((float(length - pos)) / length) * std::min(1.0f, (float(length) /  (1.5f * pos)))));
     }
     return true;
 }
@@ -46,8 +46,7 @@ void Raindrop::reset(const double time)
 
 
 
-RaindropEffect::RaindropEffect(unsigned int height, unsigned int width, double time)
-: m_height(height), m_width(width)
+RaindropEffect::RaindropEffect(unsigned int width, double time)
 {
     srand(0);
     for (unsigned int col = 0; col < width; ++col) {
@@ -59,7 +58,7 @@ RaindropEffect::RaindropEffect(unsigned int height, unsigned int width, double t
 void RaindropEffect::fill(EffectBuffer& buffer, const EffectState& state)
 {
     for (auto& drop : drops) {
-        if (!drop.draw(buffer, m_height, m_width, state.time)) {
+        if (!drop.draw(buffer, state.time)) {
             drop.reset(state.time + (rand() % 50) / 10.0f);
         }
     }

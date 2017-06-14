@@ -42,7 +42,6 @@ private:
     void send(const EffectBuffer& buffer);
     void fill(EffectBuffer& buffer, std::vector<std::shared_ptr<Effect>>& effects, const EffectState& state);
     RotationData motion(const MotionData& motionData);
-    void anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time);
     void setBrightness(float brightness);
 
     bool handleGet(CivetServer* server, mg_connection* conn);
@@ -55,7 +54,7 @@ private:
     int m_height = 20;
     int m_roof = 10;
     int m_fps = 60;
-    std::string m_host = "127.0.0.4";
+    std::string m_host = "192.168.1.20";
     std::string m_hostMotion = "192.168.1.112";
     int m_port = 7000;
     int m_portControl = 7001;
@@ -234,26 +233,11 @@ void Visuals::send(const EffectBuffer& buffer)
     m_network.send(out, 800, 700);
 }
 
-
-
-void Visuals::anim(EffectBuffer& buffer, std::vector<char> image, float time)
-{
-    for (int y=0; y<m_width; y++) {
-        for (int x=0; x<m_height; x++) {
-        }
-    }
-}
-
-
 void Visuals::fill(EffectBuffer& buffer, std::vector<std::shared_ptr<Effect>>& effects, const EffectState& state)
 {
-    int t = m_time * m_fps;
-
     std::random_device r;
     std::default_random_engine e1(r());
     std::uniform_int_distribution<int> uniform_dist(0, 0xffffff);
-
-    buffer.resize(m_width * m_height);
 
     for (auto effect : effects) {
         effect->fill(buffer, state);
@@ -311,20 +295,20 @@ int Visuals::main(int argc, char* argv[])
     std::vector<std::shared_ptr<Effect>> effects;
     effects.push_back(
             std::make_shared<AddEffect>(
-                std::make_shared<PlasmaEffect>(m_height, m_width), 0.2f));
+                std::make_shared<PlasmaEffect>(), 0.2f));
     effects.push_back(
             std::make_shared<AddEffect>(
-                std::make_shared<RaindropEffect>(m_height, m_width, m_time), 0.7f));
+                std::make_shared<RaindropEffect>(m_width, m_time), 0.7f));
     effects.push_back(
-            std::make_shared<LineEffect>(Point(0, 0), Point(0, 19), Color3(1, 1, 1), m_width));
+            std::make_shared<LineEffect>(Point(0, 0), Point(0, 19), Color3(1, 1, 1)));
     effects.push_back(
-            std::make_shared<RotationEffect>(m_width, m_height));
+            std::make_shared<RotationEffect>());
 
     while (true) {
-	m_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp).count() / 1000.0f;
+    m_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp).count() / 1000.0f;
 
         MotionData md = amd;
-	EffectState state(m_time, motion(md));
+        EffectState state(m_time, motion(md));
 
         buffer.clear();
         fill(buffer, effects, state);

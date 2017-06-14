@@ -6,12 +6,7 @@
 
 class RotationEffect : public Effect
 {
-
-    unsigned int m_width;
-    unsigned int m_height;
-
 public:
-    RotationEffect(unsigned int width, unsigned int height);
     void fill(EffectBuffer& buffer, const EffectState& state) override;
 };
 
