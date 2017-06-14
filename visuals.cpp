@@ -40,7 +40,6 @@ public:
 private:
     void send(const std::vector<unsigned int>& buffer);
     void fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects);
-    void rotate(std::vector<unsigned int>& buffer, float rot);
     void motion(const MotionData& motionData);
     void anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time);
     void setBrightness(float brightness);
@@ -324,23 +323,6 @@ void addToBuffer(std::vector<unsigned int>& result, const std::vector<unsigned i
     }
 }
 
-void Visuals::rotate(std::vector<unsigned int>& buffer, float rot)
-{
-    rot = fmod2(rot / 3.141592f / 2.0f, 1.0f);
-    std::cout << m_x << " " << " " << m_y << " " << " " << m_z << " " << rot << std::endl;
-    std::vector<unsigned int> buf2;
-    buf2.resize(buffer.size());
-    for (int x=0; x<m_width; x++) {
-        for (int y=0; y<m_height; y++) {
-            float frac = fmod(rot * m_width, 1.0f);
-            Color3 col1(buffer[y * m_width + (x + size_t(rot * m_width) + 0) % m_width]);
-            Color3 col2(buffer[y * m_width + (x + size_t(rot * m_width) + 1) % m_width]);
-            buf2[y * m_width + x] = /*col1 + (col2 - col1) * frac;*/ col1 * (1 - frac) + col2 * frac;
-        }
-    }
-
-    std::copy(buf2.begin(), buf2.end(), buffer.begin());
-}
 
 void Visuals::fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects)
 {
