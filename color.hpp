@@ -14,7 +14,7 @@ class Color3;
 class Color4 {
 
 public:
-    Color4() {}
+    Color4();
     explicit Color4( unsigned int argb );
     explicit Color4( const float* );
     Color4( const Color3&, float a );
@@ -41,10 +41,10 @@ public:
     bool operator == ( const Color4& ) const;
     bool operator != ( const Color4& ) const;
 
-    float r = 0.0f;
-    float g = 0.0f;
-    float b = 0.0f;
-    float a = 1.0f;
+    float r;
+    float g;
+    float b;
+    float a;
 
 private:  // (not allowed!)
     // unary operators
@@ -115,30 +115,39 @@ Color4::Color4( unsigned int argb )
 
 inline
 Color4::Color4( const float* pf )
-{
-    r = pf[0];
-    g = pf[1];
-    b = pf[2];
-    a = pf[3];
-}
+:
+    r(pf[0]),
+    g(pf[1]),
+    b(pf[2]),
+    a(pf[3])
+{}
 
 inline
 Color4::Color4( const Color3& c, float fa )
-{
-    r = c.r;
-    g = c.g;
-    b = c.b;
-    a = fa;
-}
+:
+    r(c.r),
+    g(c.g),
+    b(c.b),
+    a(fa)
+{}
 
 inline
 Color4::Color4( float fr, float fg, float fb, float fa )
-{
-    r = fr;
-    g = fg;
-    b = fb;
-    a = fa;
-}
+:
+    r(fr),
+    g(fg),
+    b(fb),
+    a(fa)
+{}
+
+inline
+Color4::Color4()
+:
+    r(0),
+    g(0),
+    b(0),
+    a(1)
+{}
 
 inline
 void Color4::set( float fr, float fg, float fb, float fa )
