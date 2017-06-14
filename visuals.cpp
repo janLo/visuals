@@ -16,6 +16,8 @@
 
 #include "effect.hpp"
 #include "raindrop_effect.hpp"
+#include "rotation_effect.hpp"
+
 
 /*#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"*/
@@ -440,6 +442,8 @@ int Visuals::main(int argc, char* argv[])
     effects.push_back(
             std::make_shared<AddEffect>(
                 std::make_shared<EffectRaindrops>(m_height, m_width, m_time), 0.7f));
+    effects.push_back(
+            std::make_shared<RotationEffect>(m_width, m_height));
 
     while (true) {
 	m_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp).count() / 1000.0f;

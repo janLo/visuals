@@ -12,3 +12,5 @@ void AddEffect::fill(EffectBuffer& buffer, const EffectState& state) {
         buffer[i] += Color3(temp[i]) * m_coeff;
     }
 }
+
+AddEffect::~AddEffect() {}

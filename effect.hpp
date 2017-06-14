@@ -11,7 +11,7 @@ typedef std::vector<unsigned int>  EffectBuffer;
 struct EffectState
 {
     const double time;
-    const double rotation;
+    const float rotation;
 
     EffectState(const double time, const double rotation)
     : time(time), rotation(rotation)
@@ -34,7 +34,7 @@ public:
     AddEffect(std::shared_ptr<Effect> base, const float coeff);
     void fill(EffectBuffer& buffer, const EffectState& state);
 
-    ~AddEffect() {}
+    ~AddEffect();
 };
 
 #endif

@@ -1,15 +1,5 @@
 #include "color_utils.hpp"
-#include <algorithm>
 
-
-Color3 saturate(const Color3& col)
-{
-    return Color3(
-        std::max(0.0f, std::min(1.0f, col.r)),
-        std::max(0.0f, std::min(1.0f, col.g)),
-        std::max(0.0f, std::min(1.0f, col.b))
-        );
-}
 /*
 Color3 hue(float h)
 {
