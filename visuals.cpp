@@ -26,7 +26,7 @@ struct MotionData {
 class Effect {
 public:
     virtual ~Effect() {}
-    virtual void fill(std::vector<unsigned int>& buffer, double time) {};
+    virtual void fill(std::vector<unsigned int>& buffer, double time) = 0;
 };
 
 class Visuals : public CivetHandler {
