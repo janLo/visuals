@@ -9,22 +9,23 @@ Raindrop::Raindrop(unsigned int col, double start, Color3 color)
 {
 }
 
-bool Raindrop::draw(EffectBuffer& buffer, const double time) const
+void Raindrop::fill(EffectBuffer& buffer, const EffectState& state)
 {
-    double elapsed = time - m_start;
+    double elapsed = state.time - m_start;
 
     if (0 > elapsed) {
-        return true;
+        return;
     }
 
     double step_time = m_speed / buffer.height();
     unsigned int length = buffer.height() / std::min(2.0, m_speed*0.5f);
 
-    double offset = (time - m_start) / step_time;
+    double offset = elapsed / step_time;
     double step = std::floor(offset);
 
     if ((step - length) > buffer.height()) {
-        return false;
+        reset(state.time);
+	return;
     }
 
     for (int pos = length - 1; pos >= 0; --pos) {
@@ -34,7 +35,7 @@ bool Raindrop::draw(EffectBuffer& buffer, const double time) const
         }
         buffer.set(m_col, position, m_color * float(((float(length - pos)) / length) * std::min(1.0f, (float(length) /  (1.5f * pos)))));
     }
-    return true;
+    return;
 }
 
 void Raindrop::reset(const double time)
@@ -58,8 +59,6 @@ RaindropEffect::RaindropEffect(unsigned int width, double time)
 void RaindropEffect::fill(EffectBuffer& buffer, const EffectState& state)
 {
     for (auto& drop : drops) {
-        if (!drop.draw(buffer, state.time)) {
-            drop.reset(state.time + (rand() % 50) / 10.0f);
-        }
+        drop.fill(buffer, state);
     }
 }

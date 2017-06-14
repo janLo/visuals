@@ -4,20 +4,19 @@
 #include "effect.hpp"
 #include "color.hpp"
 
-class Raindrop
+class Raindrop : public Effect
 {
     unsigned int m_col;
     double m_speed;
     double m_start;
     Color3 m_color;
 
+    void reset(const double time);
+
 public:
 
     Raindrop(unsigned int col, double start, Color3 color);
-
-    bool draw(EffectBuffer& buffer, const double time) const;
-    void reset(const double time);
-
+    void fill(EffectBuffer& buffer, const EffectState& state) override;
 };
 
 class RaindropEffect : public Effect {
