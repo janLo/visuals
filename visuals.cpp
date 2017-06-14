@@ -63,7 +63,7 @@ private:
     int m_portMotionControl = 7001;
     float m_brightness = 0.1f;
     std::vector<int> m_leds;
-    float m_x, m_y, m_z; // motion controller euler angles
+    RotationData m_rotation; // motion controller euler angles
 
     Network m_network;
     Network m_networkControl;
@@ -80,6 +80,7 @@ private:
 
 
 Visuals::Visuals()
+: m_rotation(0.0f,0.0f,0.0f)
 {
     // start webserver
     std::string path = "data";
@@ -258,7 +259,7 @@ void Visuals::anim(std::vector<unsigned int>& buffer, std::vector<char> image, f
 
 void Visuals::fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects)
 {
-    EffectState state(m_time, m_x);
+    EffectState state(m_time, m_rotation);
     int t = m_time * m_fps;
 
     std::random_device r;
@@ -286,13 +287,11 @@ void Visuals::motion(const MotionData& motionData)
     float ys = motionData.y / 16384.0f;
     float zs = motionData.z / 16384.0f;
     float ws = motionData.w / 16384.0f;
-    m_x = atan2(2*(xs*ys + ws*zs), 1-2*(ws*ws + xs*xs));  // psi
-    m_y = -asin(2*xs*zs + 2*ws*ys);                         // theta
-    m_z = atan2(2*ys*zs - 2*ws*xs, 2*ws*ws + 2*zs*zs - 1);  // phi
-    /*  m_x = atan2(2*xs*ys - 2*ws*zs, 2*ws*ws + 2*xs*xs - 1);  // psi
-    m_x = m_x + 3.141592f;*/
-   // m_x = m_x + 3.141592f;
-    //std::cout << motionData.timestamp << " " << xs << " " << ys << " " << zs << " " << ws << " " << m_x / 3.141592f * 180.0f << " " << m_y / 3.141592f * 180.0f << " " << m_z / 3.141592f * 180.0f << std::endl;
+
+    m_rotation = RotationData(
+        atan2(2*(xs*ys + ws*zs), 1-2*(ws*ws + xs*xs)),  // psi
+        -asin(2*xs*zs + 2*ws*ys),                         // theta
+        atan2(2*ys*zs - 2*ws*xs, 2*ws*ws + 2*zs*zs - 1));  // phi
 }
 
 int Visuals::main(int argc, char* argv[])

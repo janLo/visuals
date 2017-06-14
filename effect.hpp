@@ -7,13 +7,20 @@
 
 typedef std::vector<unsigned int>  EffectBuffer;
 
+struct RotationData
+{
+    float x, y, z; // angles
+    RotationData(const float x, const float y, const float z)
+    : x(x), y(y), z(z)
+    {}
+};
 
 struct EffectState
 {
     const double time;
-    const float rotation;
+    const RotationData& rotation;
 
-    EffectState(const double time, const double rotation)
+    EffectState(const double time, const RotationData& rotation)
     : time(time), rotation(rotation)
     {}
 };

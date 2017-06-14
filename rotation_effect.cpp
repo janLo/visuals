@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "rotation_effect.hpp"
 #include "color.hpp"
 #include "color_utils.hpp"
@@ -10,8 +12,8 @@ RotationEffect::RotationEffect(unsigned int width, unsigned int height)
 
 void RotationEffect::fill(EffectBuffer& buffer, const EffectState& state)
 {
-    float rot = fmod2(state.rotation / 3.141592f / 2.0f, 1.0f);
-    //std::cout << m_x << " " << " " << m_y << " " << " " << m_z << " " << rot << std::endl;
+    float rot = fmod2(state.rotation.x / 3.141592f / 2.0f, 1.0f);
+    std::cout << state.rotation.x << " " << " " << state.rotation.y << " " << " " << state.rotation.z << " " << rot << std::endl;
     std::vector<unsigned int> buf2(buffer.size());
     for (int x=0; x<m_width; x++) {
         for (int y=0; y<m_height; y++) {
