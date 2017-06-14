@@ -12,6 +12,11 @@
 #include <algorithm>
 #include <atomic>
 
+#include "color_utils.hpp"
+
+#include "effect.hpp"
+#include "raindrop_effect.hpp"
+
 /*#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"*/
 
@@ -23,11 +28,6 @@ struct MotionData {
 };
 #pragma pack()
 
-class Effect {
-public:
-    virtual ~Effect() {}
-    virtual void fill(std::vector<unsigned int>& buffer, double time) = 0;
-};
 
 class Visuals : public CivetHandler {
 public:
@@ -77,144 +77,8 @@ private:
     double m_time;
 };
 
-template<class T>
-T fmod2(T x, T y)
-{
-    if (x >= T(0))
-        return std::fmod(x, y);
-    return std::fmod(x, y) + y;
-}
 
-Color3 saturate(const Color3& col)
-{
-    return Color3(
-        std::max(0.0f, std::min(1.0f, col.r)),
-        std::max(0.0f, std::min(1.0f, col.g)),
-        std::max(0.0f, std::min(1.0f, col.b))
-        );
-}
-/*
-Color3 hue(float h)
-{
-    float r = abs(h * 6 - 3) - 1;
-    float g = 2 - abs(h * 6 - 2);
-    float b = 2 - abs(h * 6 - 4);
-    return saturate(Color3(r, g, b));
-}
 
-Color3 HSVtoRGB(const Color3& hsv)
-{
-    return Color3(((hue(hsv.r) - 1.0f) * hsv.g + 1.0f) * hsv.b);
-}
-*/
-Color3 HSVtoRGB(const Color3& hsv)
-{
-    Color3 out;
-    float h = hsv.r;
-    float s = hsv.g;
-    float v = hsv.b;
-    if (s == 0.0f)
-    {
-        // gray
-        out.r = out.g = out.b = v;
-        return out;
-    }
-
-    h = fmodf(h, 1.0f) / (60.0f/360.0f);
-    int   i = (int)h;
-    float f = h - (float)i;
-    float p = v * (1.0f - s);
-    float q = v * (1.0f - s * f);
-    float t = v * (1.0f - s * (1.0f - f));
-
-    switch (i)
-    {
-    case 0: out.r = v; out.g = t; out.b = p; break;
-    case 1: out.r = q; out.g = v; out.b = p; break;
-    case 2: out.r = p; out.g = v; out.b = t; break;
-    case 3: out.r = p; out.g = q; out.b = v; break;
-    case 4: out.r = t; out.g = p; out.b = v; break;
-    case 5: default: out.r = v; out.g = p; out.b = q; break;
-    }
-    return out;
-}
-
-class Raindrop
-{
-    unsigned int m_col;
-    double m_speed;
-    double m_start;
-    Color3 m_color;
-
-public:
-
-    Raindrop(unsigned int col, double start, Color3 color)
-        : m_col(col), m_speed(1 + (rand() % 7) ), m_start(start), m_color(color)
-    {
-    }
-
-    bool draw(std::vector<unsigned int>& buffer, const unsigned int height, const unsigned int width, const double time) const
-    {
-        double elapsed = time - m_start;
-
-        if (0 > elapsed) {
-            return true;
-        }
-
-        double step_time = m_speed / height;
-        unsigned int length = height / std::min(2.0, m_speed*0.5f);
-
-        double offset = (time - m_start) / step_time;
-        double step = std::floor(offset);
-
-        if ((step - length) > height) {
-            return false;
-        }
-
-        for (int pos = length - 1; pos >= 0; --pos) {
-            int position = offset - pos;
-            if (position < 0 || position >= height) {
-                continue;
-            }
-            buffer[width * position + m_col] = m_color * float(((float(length - pos)) / length) * std::min(1.0f, (float(length) /  (1.5f * pos))));
-        }
-        return true;
-    }
-
-    void reset(const double time)
-    {
-        m_start = time;
-        m_speed = 1 + rand() % 7;
-    }
-
-};
-
-class EffectRaindrops : public Effect {
-    unsigned int m_height;
-    unsigned int m_width;
-    std::vector<Raindrop> drops;
-
-public:
-
-    EffectRaindrops(unsigned int height, unsigned int width, double time)
-    : m_height(height), m_width(width)
-    {
-        srand(0);
-        for (unsigned int col = 0; col < width; ++col) {
-            Color3 color = HSVtoRGB(Color3(col / 50.0f, 1.0f, 1.0f));
-            drops.push_back(Raindrop(col, time + (rand() % 25) / 10.0f, color));
-        }
-    }
-
-    void fill(std::vector<unsigned int>& buffer, double time) override
-    {
-        for (auto& drop : drops) {
-            if (!drop.draw(buffer, m_height, m_width, time)) {
-                drop.reset(time + (rand() % 50) / 10.0f);
-            }
-        }
-    }
-};
 
 Visuals::Visuals()
 {
@@ -502,6 +366,7 @@ void Visuals::rotate(std::vector<unsigned int>& buffer, float rot)
 
 void Visuals::fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects)
 {
+    EffectState state(m_time, m_x);
     int t = m_time * m_fps;
 
     std::random_device r;
@@ -516,7 +381,7 @@ void Visuals::fill(std::vector<unsigned int>& buffer, std::vector<std::shared_pt
     addToBuffer(buffer, buf2, 0.1f);
     for (auto effect : effects) {
         std::vector<unsigned int> buf(m_width * m_height);
-        effect->fill(buf, m_time);
+        effect->fill(buf, state);
         addToBuffer(buffer, buf, 0.7f);
 
     }
