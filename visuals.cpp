@@ -56,11 +56,11 @@ private:
     int m_height = 20;
     int m_roof = 10;
     int m_fps = 60;
-    std::string m_host = "192.168.1.111";
+    std::string m_host = "127.0.0.4";
     std::string m_hostMotion = "192.168.1.112";
     int m_port = 7000;
     int m_portControl = 7001;
-    int m_portMotion = 7000;
+    int m_portMotion = 7002;
     int m_portMotionControl = 7001;
     float m_brightness = 0.1f;
     std::vector<int> m_leds;
@@ -380,10 +380,7 @@ void Visuals::fill(std::vector<unsigned int>& buffer, std::vector<std::shared_pt
     effectPlasma(buf2);
     addToBuffer(buffer, buf2, 0.1f);
     for (auto effect : effects) {
-        std::vector<unsigned int> buf(m_width * m_height);
-        effect->fill(buf, state);
-        addToBuffer(buffer, buf, 0.7f);
-
+        effect->fill(buffer, state);
     }
     effectLines(buffer, 0, 0, 00, 19, Color3(1, 1, 1));
     rotate(buffer, m_x/*time / 10.0f*/);
@@ -440,7 +437,9 @@ int Visuals::main(int argc, char* argv[])
     std::chrono::steady_clock::time_point last_tp = std::chrono::steady_clock::now();
 
     std::vector<std::shared_ptr<Effect>> effects;
-    effects.push_back(std::make_shared<EffectRaindrops>(m_height, m_width, m_time));
+    effects.push_back(
+            std::make_shared<AddEffect>(
+                std::make_shared<EffectRaindrops>(m_height, m_width, m_time), 0.7f));
 
     while (true) {
 	m_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp).count() / 1000.0f;
