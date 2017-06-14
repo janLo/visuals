@@ -39,8 +39,8 @@ public:
     int main(int argc, char* argv[]);
 
 private:
-    void send(const std::vector<unsigned int>& buffer);
-    void fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects, const EffectState& state);
+    void send(const EffectBuffer& buffer);
+    void fill(EffectBuffer& buffer, std::vector<std::shared_ptr<Effect>>& effects, const EffectState& state);
     RotationData motion(const MotionData& motionData);
     void anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time);
     void setBrightness(float brightness);
@@ -219,7 +219,7 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
     return true;
 }
 
-void Visuals::send(const std::vector<unsigned int>& buffer)
+void Visuals::send(const EffectBuffer& buffer)
 {
     std::vector<char> out;
     out.resize(m_width * m_height * 3);
@@ -246,7 +246,7 @@ void Visuals::send(const std::vector<unsigned int>& buffer)
 
 
 
-void Visuals::anim(std::vector<unsigned int>& buffer, std::vector<char> image, float time)
+void Visuals::anim(EffectBuffer& buffer, std::vector<char> image, float time)
 {
     for (int y=0; y<m_width; y++) {
         for (int x=0; x<m_height; x++) {
@@ -255,7 +255,7 @@ void Visuals::anim(std::vector<unsigned int>& buffer, std::vector<char> image, f
 }
 
 
-void Visuals::fill(std::vector<unsigned int>& buffer, std::vector<std::shared_ptr<Effect>>& effects, const EffectState& state)
+void Visuals::fill(EffectBuffer& buffer, std::vector<std::shared_ptr<Effect>>& effects, const EffectState& state)
 {
     int t = m_time * m_fps;
 
@@ -293,7 +293,7 @@ RotationData Visuals::motion(const MotionData& motionData)
 
 int Visuals::main(int argc, char* argv[])
 {
-    std::vector<unsigned int> buffer;
+    EffectBuffer buffer;
     m_network.connect(m_host, m_port);
     //std::cout << "sockname: " << m_network.getSockName() << std::endl;
     m_networkControl.connect(m_host, m_portControl);
