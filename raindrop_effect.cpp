@@ -46,7 +46,7 @@ void Raindrop::reset(const double time)
 
 
 
-EffectRaindrops::EffectRaindrops(unsigned int height, unsigned int width, double time)
+RaindropEffect::RaindropEffect(unsigned int height, unsigned int width, double time)
 : m_height(height), m_width(width)
 {
     srand(0);
@@ -56,7 +56,7 @@ EffectRaindrops::EffectRaindrops(unsigned int height, unsigned int width, double
     }
 }
 
-void EffectRaindrops::fill(EffectBuffer& buffer, const EffectState& state)
+void RaindropEffect::fill(EffectBuffer& buffer, const EffectState& state)
 {
     for (auto& drop : drops) {
         if (!drop.draw(buffer, m_height, m_width, state.time)) {

@@ -20,16 +20,16 @@ public:
 
 };
 
-class EffectRaindrops : public Effect {
+class RaindropEffect : public Effect {
     unsigned int m_height;
     unsigned int m_width;
     std::vector<Raindrop> drops;
 
 public:
 
-    EffectRaindrops(unsigned int height, unsigned int width, double time);
+    RaindropEffect(unsigned int height, unsigned int width, double time);
     void fill(EffectBuffer& buffer, const EffectState& state) override;
-    ~EffectRaindrops() {}
+    ~RaindropEffect() {}
 };
 
 
