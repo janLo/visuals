@@ -64,7 +64,7 @@ void ExtendingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
     float half_duration = m_duration / 2;
     float progress = (half_duration - std::abs(elapsed - half_duration)) / half_duration;
     float radius = progress*progress * m_radius;
-    float sqrt_progress = std::sqrt(progress);
+    float sqrt_progress = std::pow(progress, 0.3);
 
     if (radius < 1.1f) {
 	    return;
@@ -100,7 +100,7 @@ void ExplodingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
     float inverse_progress = 1.0f - progress;
     float inverse_squared_progress = 1.0f - progress_squared;
 
-    m_circle.set_radius(std::sqrt(progress) * m_radius);
+    m_circle.set_radius(std::pow(progress, 0.3) * m_radius);
     m_circle.set_color(Color3(inverse_squared_progress,
             inverse_progress * inverse_squared_progress * .5,
             std::max(0.0f, 1.0f - (progress * 5.0f)) * inverse_squared_progress * .3));
