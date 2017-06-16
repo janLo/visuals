@@ -4,8 +4,8 @@
 #include <cmath>
 
 
-TopDownWaveEffect::TopDownWaveEffect(float duration)
-: m_duration(duration)
+TopDownWaveEffect::TopDownWaveEffect(float duration, bool inverse)
+: m_duration(duration), m_inverse(inverse)
 {}
 
 
@@ -38,7 +38,11 @@ void TopDownWaveEffect::fill(EffectBuffer& buffer, const EffectState& state) {
             color *= 1 + (dist - y);
         }
         for (int x = 0; x < buffer.width(); ++x) {
-            buffer.set(x, y, color);
+            if (m_inverse) {
+                buffer.set(x, buffer.height() - y -1, color);
+            } else {
+                buffer.set(x, y, color);
+            }
         }
     }
 }
