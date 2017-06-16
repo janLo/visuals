@@ -94,9 +94,13 @@ void ExplodingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
     }
 
     float progress = elapsed / m_duration;
+    float progress_squared = progress*progress;
     float inverse_progress = 1.0f - progress;
-    circle.set_radius((progress * progress) * m_radius);
-    Color3 base_color(1,1.0 * inverse_progress,std::max(0.0f, 1.0f - (progress * 5.0f)));
-    circle.set_color(base_color * (1.0f - progress*progress));
+    float inverse_squared_progress = 1.0f - progress_squared;
+
+    circle.set_radius(progress_squared * m_radius);
+    circle.set_color(Color3(inverse_squared_progress,
+		            inverse_progress * inverse_squared_progress,
+		            std::max(0.0f, 1.0f - (progress * 5.0f)) * inverse_squared_progress));
     circle.fill(buffer, state);
 }
