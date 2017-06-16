@@ -54,7 +54,7 @@ private:
     int m_height = 20;
     int m_roof = 10;
     int m_fps = 60;
-    std::string m_host = "192.168.1.20";
+    std::string m_host = "127.0.0.1";
     std::string m_hostMotion = "192.168.1.112";
     int m_port = 7000;
     int m_portControl = 7001;
@@ -303,7 +303,10 @@ int Visuals::main(int argc, char* argv[])
             std::make_shared<LineEffect>(Point(0, 0), Point(0, 19), Color3(1, 1, 1)));
     effects.push_back(
             std::make_shared<AddEffect>(
-		std::make_shared<ExtendingCircleEffect>(3, Color3(1, 1, 1), 5, m_time), 1.0));
+		std::make_shared<ExtendingCircleEffect>(3, Color3(1, 1, 1), 4, m_time), 1.0));
+    effects.push_back(
+            std::make_shared<AddEffect>(
+		std::make_shared<ExplodingCircleEffect>(6, 1, m_time), 1.0));
     effects.push_back(
             std::make_shared<RotationEffect>());
 
