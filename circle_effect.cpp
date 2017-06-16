@@ -58,12 +58,13 @@ void ExtendingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
         float x = rand() % buffer.width();
         float y = rand() % buffer.height();
         m_circle.set_center(Point(x, y));
+        m_color = HSVtoRGB(Color3(rand() / (float)RAND_MAX, 1.0f, 1.0f));
         return;
     }
 
     float half_duration = m_duration / 2;
     float progress = (half_duration - std::abs(elapsed - half_duration)) / half_duration;
-    float radius = progress*progress * m_radius;
+    float radius = pow(progress, 0.25f) * m_radius;
     float sqrt_progress = std::pow(progress, 0.3);
 
     if (radius < 1.1f) {

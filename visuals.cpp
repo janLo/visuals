@@ -326,16 +326,16 @@ int Visuals::main(int argc, char* argv[])
             std::make_shared<RotationEffect>());
     effects.push_back(
             std::make_shared<AddEffect>(
-		std::make_shared<ExtendingCircleEffect>(3.0f, Color3(1.0f, 1.0f, 1.0f), 4, m_time), 1.0f));
+        std::make_shared<ExtendingCircleEffect>(3.0f, HSVtoRGB(Color3(rand() / RAND_MAX, 1.0f, 1.0f)), 4, m_time), 1.0f));
     effects.push_back(
             std::make_shared<AddEffect>(
-		std::make_shared<ExplodingCircleEffect>(6, 1.2, m_time), 1.0));
+        std::make_shared<ExplodingCircleEffect>(6, 1.2, m_time), 1.0));
     effects.push_back(
             std::make_shared<AddEffect>(
-		std::make_shared<ExtendingCircleEffect>(3.0f, Color3(1.0f, 1.0f, 1.0f), 4, m_time), 1.0f));
+        std::make_shared<ExtendingCircleEffect>(3.0f, HSVtoRGB(Color3(rand() / RAND_MAX, 1.0f, 1.0f)), 4, m_time), 1.0f));
     effects.push_back(
             std::make_shared<AddEffect>(
-		std::make_shared<ExplodingCircleEffect>(8, 2, m_time), 1.0));
+        std::make_shared<ExplodingCircleEffect>(8, 2, m_time), 1.0));
     m_effects.push_back(effects);
 
     while (true) {
