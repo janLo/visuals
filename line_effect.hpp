@@ -12,6 +12,7 @@ class LineEffect : public Effect
     const Point m_p2;
     const Color3 m_color;
     float m_rot = 0.0f;
+    float m_lastFactor = 0.0f;
 
 public:
     LineEffect(const Point& p1, const Point& p2, const Color3 color);

@@ -14,18 +14,22 @@ void LineEffect::fill(EffectBuffer& buffer, const EffectState& state)
     float dy = float(m_p2.y-m_p1.y)/float(m_p2.x-m_p1.x);
     float len = length(m_p2.x-m_p1.x, m_p2.y-m_p1.y);
 
+    float factor = std::fabs(m_rot - state.rotation.x) * 5.0f;
+    if (factor > 20)
+        factor = m_lastFactor;
     if (dx < dy) {
         float x = m_p1.x;
         for (int y=m_p1.y; y<=m_p2.y; y++) {
             x += dx;
-            buffer.set(x, y, m_color * fabs(m_rot - state.rotation.x) * 10.0f);
+            buffer.set(x, y, m_color * factor);
         }
     } else {
         float y = m_p1.y;
         for (int x=m_p1.x; x<=m_p2.x; x++) {
             y += dy;
-            buffer.set(x, y, m_color * fabs(m_rot - state.rotation.x) * 10.0f);
+            buffer.set(x, y, m_color * factor);
         }
     }
     m_rot = state.rotation.x;
+    m_lastFactor = factor;
 }
