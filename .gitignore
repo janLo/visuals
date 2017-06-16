@@ -5,3 +5,7 @@ build
 *.dll
 *.swp
 *.orig
+data
+libogg
+libvorbis
+portaudio
