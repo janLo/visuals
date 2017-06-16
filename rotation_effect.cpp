@@ -23,5 +23,5 @@ void RotationEffect::fill(EffectBuffer& buffer, const EffectState& state)
         }
     }
 
-    buffer = buf2;
+    buffer = std::move(buf2);
 }

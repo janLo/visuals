@@ -19,8 +19,15 @@ public:
     Color3& operator [](size_t i)               { return m_buffer[i]; }
     const Color3& operator [](size_t i) const   { return m_buffer[i]; }
 
-    EffectBuffer& operator =(const EffectBuffer& other) 
-    {     
+    EffectBuffer& operator =(EffectBuffer&& other)
+    {
+        if (this != &other)
+            m_buffer = std::move(other.m_buffer);
+        return *this;
+    }
+
+    EffectBuffer& operator =(const EffectBuffer& other)
+    {
         if (this != &other)
             std::copy(other.m_buffer.begin(), other.m_buffer.end(), m_buffer.begin());
         return *this;
