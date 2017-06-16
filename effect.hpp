@@ -53,8 +53,8 @@ struct EffectState
 
 struct Point
 {
-    unsigned int x;
-    unsigned int y;
+    float x;
+    float y;
 
     Point(unsigned int x, unsigned int y)
     : x(x), y(y)

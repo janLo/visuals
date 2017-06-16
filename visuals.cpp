@@ -19,7 +19,7 @@
 #include "rotation_effect.hpp"
 #include "line_effect.hpp"
 #include "plasma_effect.hpp"
-
+#include "filled_circle_effect.hpp"
 
 /*#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"*/
@@ -301,6 +301,9 @@ int Visuals::main(int argc, char* argv[])
                 std::make_shared<RaindropEffect>(m_width, m_time), 0.7f));
     effects.push_back(
             std::make_shared<LineEffect>(Point(0, 0), Point(0, 19), Color3(1, 1, 1)));
+    effects.push_back(
+            std::make_shared<AddEffect>(
+		std::make_shared<ExtendingCircleEffect>(3, Color3(1, 1, 1), 5, m_time), 1.0));
     effects.push_back(
             std::make_shared<RotationEffect>());
 
