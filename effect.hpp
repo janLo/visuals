@@ -7,7 +7,7 @@
 
 class EffectBuffer {
 public:
-    EffectBuffer()                              { m_buffer.resize(m_width * m_height); }
+    EffectBuffer() : m_buffer(m_width*m_height) { }
     void set(int x, int y, const Color3& color) { m_buffer[y * m_width + x] = color; }
     const Color3& get(int x, int y) const       { return m_buffer[y * m_width + x]; }
     std::vector<Color3>& get()                  { return m_buffer; }
