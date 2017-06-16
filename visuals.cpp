@@ -312,13 +312,17 @@ int Visuals::main(int argc, char* argv[])
             std::make_shared<AddEffect>(
                 std::make_shared<RaindropEffect>(m_width, m_time), 0.7f));
     effects.push_back(
-            std::make_shared<LineEffect>(Point(0, 0), Point(0, 19), Color3(1, 1, 1)));
+            std::make_shared<AddEffect>(
+                std::make_shared<LineEffect>(Point(0, 0), Point(24, 19), Color3(1, 1, 1)), 1.0f));
+    effects.push_back(
+                std::make_shared<RotationEffect>());
+
     m_effects.push_back(effects);
 
     effects.clear();
     effects.push_back(
             std::make_shared<AddEffect>(
-		std::make_shared<ExtendingCircleEffect>(3, Color3(1, 1, 1), 4, m_time), 1.0));
+		std::make_shared<ExtendingCircleEffect>(3.0f, Color3(1.0f, 1.0f, 1.0f), 4, m_time), 1.0f));
     effects.push_back(
             std::make_shared<AddEffect>(
 		std::make_shared<ExplodingCircleEffect>(6, 1, m_time), 1.0));
