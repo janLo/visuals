@@ -33,4 +33,19 @@ public:
 
 };
 
+
+class ExplodingCircleEffect : public Effect
+{
+    float m_radius;
+    double m_duration;
+    double  m_start;
+
+    CircleEffect circle;
+
+public:
+    ExplodingCircleEffect(float radius, float duration, const double start);
+    void fill(EffectBuffer& buffer, const EffectState& state) override;
+
+};
+
 #endif

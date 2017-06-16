@@ -7,7 +7,7 @@
 
 
 CircleEffect::CircleEffect(const Point& center, const float radius, const Color3& color, const bool fill)
-: m_center(center), m_radius(radius), m_color(color), m_fill(fill)
+    : m_center(center), m_radius(radius), m_color(color), m_fill(fill)
 {}
 
 void CircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
@@ -33,8 +33,8 @@ void CircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
                 }
             } else {
                 if (d < 1.0 && d > -1.5) {
-                  float coeff = (d > 0 ? 1.0f - d : 1.0f + d);
-                   buffer.set(fmod2(x, buffer.width()), y, m_color * float(std::min(1.0f, coeff)));
+                    float coeff = (d > 0 ? 1.0f - d : 1.0f + d);
+                    buffer.set(fmod2(x, buffer.width()), y, m_color * float(std::min(1.0f, coeff)));
                 }
             }
         }
@@ -42,7 +42,7 @@ void CircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
 }
 
 ExtendingCircleEffect::ExtendingCircleEffect(float radius, const Color3& color, float duration, double time)
-: m_radius(radius), m_duration(duration), m_start(time), circle(Point(0, 0), 0, color, false)
+    : m_radius(radius), m_duration(duration), m_start(time), circle(Point(0, 0), 0, color, false)
 {}
 
 void ExtendingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
@@ -61,7 +61,35 @@ void ExtendingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
         return;
     }
 
-    float progress = (m_duration / 2.0f) - std::abs(elapsed - (m_duration / 2.0f));
-    circle.set_radius(progress);
+    float half_duration = m_duration / 2;
+    float progress = (half_duration - std::abs(elapsed - half_duration)) / half_duration;
+    circle.set_radius(progress * m_radius);
+    circle.fill(buffer, state);
+}
+
+ExplodingCircleEffect::ExplodingCircleEffect(float radius, float duration, double time)
+    : m_radius(radius), m_duration(duration), m_start(time), circle(Point(0, 0), 0, Color3(1, 1, 1), false)
+{}
+
+void ExplodingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
+{
+    double elapsed = state.time - m_start;
+
+    if (elapsed <= 0.0f) {
+        return;
+    }
+
+    if (elapsed > m_duration) {
+        m_start = state.time + rand() % 7;
+        float x = rand() % buffer.width();
+        float y = rand() % buffer.height();
+        circle.set_center(Point(x, y));
+        return;
+    }
+
+    float progress = elapsed / m_duration;
+    float inverse_progress = 1.0f - progress;
+    circle.set_radius(progress * m_radius);
+    circle.set_color(Color3(1,1.0 * inverse_progress,1.0 * std::max(0.0f, (inverse_progress * 2)) * (inverse_progress * inverse_progress)));
     circle.fill(buffer, state);
 }
