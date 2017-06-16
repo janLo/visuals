@@ -307,7 +307,7 @@ int Visuals::main(int argc, char* argv[])
     std::vector<std::shared_ptr<Effect>> effects;
     effects.push_back(
             std::make_shared<AddEffect>(
-                std::make_shared<PlasmaEffect>(), 0.2f));
+                std::make_shared<PlasmaEffect>(), 0.07f));
     effects.push_back(
             std::make_shared<AddEffect>(
                 std::make_shared<RaindropEffect>(m_width, m_time), 0.7f));
