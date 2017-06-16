@@ -16,7 +16,7 @@ void CircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
     const int x_max = std::ceil(m_center.x + m_radius) + 1;
 
     const int y_min = std::max(0, int(std::floor(m_center.y - m_radius) - 1));
-    const int y_max = std::min(buffer.height()-1, int(std::ceil(m_center.y + m_radius) + 1));
+    const int y_max = std::min(buffer.height(), int(std::ceil(m_center.y + m_radius) + 1));
 
     const float rad_square = m_radius * m_radius;
 
@@ -63,7 +63,13 @@ void ExtendingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
 
     float half_duration = m_duration / 2;
     float progress = (half_duration - std::abs(elapsed - half_duration)) / half_duration;
-    circle.set_radius(progress*progress * m_radius);
+    float radius = progress*progress * m_radius;
+
+    if (radius < 1.1f) {
+	    return;
+    }
+
+    circle.set_radius(radius);
     circle.fill(buffer, state);
 }
 
