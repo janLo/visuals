@@ -29,8 +29,9 @@ void TopDownWaveEffect::fill(EffectBuffer& buffer, const EffectState& state) {
     float dist = float(buffer.height() * progress);
 
     Color3 color(inverse_squared_progress,
-                 inverse_progress * inverse_squared_progress,
-                 std::max(0.0f, 1.0f - (progress * 5.0f)) * inverse_squared_progress);
+            inverse_progress * inverse_squared_progress * .5,
+            std::max(0.0f, 1.0f - (progress * 5.0f)) * inverse_squared_progress * .3);
+
 
     for (int y = 0; y < std::ceil(dist); ++y) {
         if (dist - y < 0.0) {
