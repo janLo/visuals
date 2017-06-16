@@ -72,6 +72,8 @@ private:
     float m_volume = 1.0f;
     std::vector<std::string> m_musicFiles;
     double m_time;
+    std::vector<std::vector<std::shared_ptr<Effect>>> m_effects;
+    int m_currentEffect = 0;
 };
 
 
@@ -93,6 +95,8 @@ Visuals::Visuals()
     m_server->addHandler("/music/voldown", this);
     m_server->addHandler("/music/next", this);
     m_server->addHandler("/music/previous", this);
+    m_server->addHandler("/effect/next", this);
+    m_server->addHandler("/effect/previous", this);
 
     // init led lookup table
     m_leds = { 0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400, 425, 450, 475 };
@@ -205,6 +209,14 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
         m_sound.setVolume(m_streamID, m_volume);
         mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
+    if (uri == "/effect/next") {
+        m_currentEffect = (m_currentEffect + 1) % m_effects.size();
+        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
+    }
+    if (uri == "/effect/previous") {
+        m_currentEffect = (m_currentEffect + m_effects.size() - 1) % m_effects.size();
+        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
+    }
     return true;
 }
 
@@ -301,6 +313,9 @@ int Visuals::main(int argc, char* argv[])
                 std::make_shared<RaindropEffect>(m_width, m_time), 0.7f));
     effects.push_back(
             std::make_shared<LineEffect>(Point(0, 0), Point(0, 19), Color3(1, 1, 1)));
+    m_effects.push_back(effects);
+
+    effects.clear();
     effects.push_back(
             std::make_shared<AddEffect>(
 		std::make_shared<ExtendingCircleEffect>(3, Color3(1, 1, 1), 4, m_time), 1.0));
@@ -309,6 +324,7 @@ int Visuals::main(int argc, char* argv[])
 		std::make_shared<ExplodingCircleEffect>(6, 1, m_time), 1.0));
     effects.push_back(
             std::make_shared<RotationEffect>());
+    m_effects.push_back(effects);
 
     while (true) {
     m_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp).count() / 1000.0f;
@@ -317,7 +333,7 @@ int Visuals::main(int argc, char* argv[])
         EffectState state(m_time, motion(md));
 
         buffer.clear();
-        fill(buffer, effects, state);
+        fill(buffer, m_effects[m_currentEffect], state);
         try {
             send(buffer);
             auto sleep = std::chrono::milliseconds(1000/m_fps);
