@@ -100,7 +100,7 @@ void ExplodingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
 
     circle.set_radius(progress_squared * m_radius);
     circle.set_color(Color3(inverse_squared_progress,
-		            inverse_progress * inverse_squared_progress,
-		            std::max(0.0f, 1.0f - (progress * 5.0f)) * inverse_squared_progress));
+            inverse_progress * inverse_squared_progress * .5,
+            std::max(0.0f, 1.0f - (progress * 5.0f)) * inverse_squared_progress * .3));
     circle.fill(buffer, state);
 }
