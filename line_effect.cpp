@@ -15,6 +15,7 @@ void LineEffect::fill(EffectBuffer& buffer, const EffectState& state)
     float len = length(m_p2.x-m_p1.x, m_p2.y-m_p1.y);
 
     float factor = std::fabs(m_rot - state.rotation.x) * 5.0f;
+    factor = factor * 0.9f + m_lastFactor * 0.1f;
     if (factor > 20)
         factor = m_lastFactor;
     if (dx < dy) {
