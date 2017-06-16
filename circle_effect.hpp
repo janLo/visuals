@@ -24,8 +24,9 @@ class ExtendingCircleEffect : public Effect
     float m_radius;
     double m_duration;
     double  m_start;
+    Color3 m_color;
 
-    CircleEffect circle;
+    CircleEffect m_circle;
 
 public:
     ExtendingCircleEffect(float radius, const Color3& color, float duration, const double start);
@@ -40,7 +41,7 @@ class ExplodingCircleEffect : public Effect
     double m_duration;
     double  m_start;
 
-    CircleEffect circle;
+    CircleEffect m_circle;
 
 public:
     ExplodingCircleEffect(float radius, float duration, const double start);
