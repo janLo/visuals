@@ -19,7 +19,7 @@
 #include "rotation_effect.hpp"
 #include "line_effect.hpp"
 #include "plasma_effect.hpp"
-#include "filled_circle_effect.hpp"
+#include "circle_effect.hpp"
 
 /*#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"*/

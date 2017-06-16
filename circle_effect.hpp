@@ -1,5 +1,5 @@
-#ifndef FILLED_CIRCLE_HPP
-#define FILLED_CIRCLE_HPP
+#ifndef CIRCLE_HPP
+#define CIRCLE_HPP
 
 #include "effect.hpp"
 

@@ -1,4 +1,4 @@
-#include "filled_circle_effect.hpp"
+#include "circle_effect.hpp"
 #include "color_utils.hpp"
 
 #include <algorithm>
