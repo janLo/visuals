@@ -18,6 +18,10 @@ if (NOT WIN32)
     find_library(VORBIS_FILE_LIBRARY NAME vorbisfile HINTS /usr/lib/${CMAKE_C_LIBRARY_ARCHITECTURE})
 endif()
 
+if (WIN32)
+    include_directories(libvorbis/include libogg/include portaudio/include)
+endif()
+
 add_executable(visuals ${FILES})
 
 if (NOT WIN32)
@@ -30,3 +34,11 @@ if (NOT WIN32)
         ${VORBIS_FILE_LIBRARY})
 endif()
 
+if (WIN32)
+    target_link_libraries(visuals 
+        C:/code/portaudiobuild/Debug/portaudio_static_x86.lib
+        C:/code/visuals/libogg/win32/VS2010/Win32/Debug/libogg_static.lib
+        C:/code/visuals/libvorbis/win32/VS2010/Win32/Debug/libvorbis_static.lib
+        C:/code/visuals/libvorbis/win32/VS2010/Win32/Debug/libvorbisfile_static.lib
+    )
+endif()
