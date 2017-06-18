@@ -20,6 +20,9 @@
 #include "line_effect.hpp"
 #include "plasma_effect.hpp"
 #include "circle_effect.hpp"
+#include "ocean_effect.hpp"
+#include "wave_effect.hpp"
+#include "stars_effect.hpp"
 
 /*#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"*/
@@ -286,6 +289,8 @@ int Visuals::main(int argc, char* argv[])
 
     std::atomic<MotionData> amd;
 
+    Color3 test(0.2, 0.3, 0.4);
+    std::cout << RGBtoHSV(HSVtoRGB(test)).r << std::endl;
     auto motionThread = std::thread([this, &amd]() {
         Network network;
         network.listen(m_portMotion);
@@ -336,6 +341,27 @@ int Visuals::main(int argc, char* argv[])
     effects.push_back(
             std::make_shared<AddEffect>(
         std::make_shared<ExplodingCircleEffect>(8, 2, m_time), 1.0));
+    m_effects.push_back(effects);
+
+    effects.clear();
+    effects.push_back(
+        std::make_shared<LineEffect>(Point(0, 0), Point(24, 19), Color3(1, 1, 1)));
+    effects.push_back(
+            std::make_shared<RotationEffect>());
+    effects.push_back(
+            std::make_shared<AddEffect>(
+        std::make_shared<TopDownWaveEffect>(2, false), 1.0f));
+    effects.push_back(
+            std::make_shared<AddEffect>(
+        std::make_shared<TopDownWaveEffect>(3, true), 1.0f));
+    m_effects.push_back(effects);
+
+    effects.clear();
+    effects.push_back(
+        std::make_shared<OceanEffect>());
+    effects.push_back(
+        std::make_shared<AddEffect>(
+            std::make_shared<StarsEffect>(), 1.0f));
     m_effects.push_back(effects);
 
     while (true) {
