@@ -33,7 +33,10 @@ void Raindrop::fill(EffectBuffer& buffer, const EffectState& state)
         if (position < 0 || position >= buffer.height()) {
             continue;
         }
-        buffer.set(m_col, position, m_color * float(((float(length - pos)) / length) * std::min(1.0f, (float(length) /  (1.5f * pos)))));
+	Color3 col = m_color * float(((float(length - pos)) / length) * std::min(1.0f, (float(length) /  (1.5f * pos))));
+	if (pos == 0)
+		col *= offset - step;
+        buffer.set(m_col, position, col);
     }
     return;
 }

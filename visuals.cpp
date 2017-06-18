@@ -11,6 +11,8 @@
 #include <array>
 #include <algorithm>
 #include <atomic>
+#include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 
 #include "color_utils.hpp"
 
@@ -111,11 +113,6 @@ Visuals::Visuals()
                 m_leds.push_back(m_leds[19-y] + x);
         }
     }
-
-    m_musicFiles = {
-        "compo.ogg"
-    };
-
 }
 
 bool Visuals::getParamString(mg_connection* conn, const std::string& name, std::string& result, size_t occurance)
@@ -282,6 +279,68 @@ RotationData Visuals::motion(const MotionData& motionData)
 
 int Visuals::main(int argc, char* argv[])
 {
+    std::string datadir = "data";
+
+    std::string inputConfig;
+    try {
+        namespace po = boost::program_options;
+        po::options_description podesc_generic("Generic Options");
+        podesc_generic.add_options()
+            ("config", po::value<std::string>(&inputConfig), "config file")
+            ("help,h", "this help screen")
+            ("version,v", "output version info")
+        ;
+
+        po::options_description podesc_config("Configuration");
+        podesc_config.add_options()
+            ("data,d", po::value<std::string>(&datadir)->default_value(datadir), "data directory")
+	    ("host,h", po::value<std::string>(&m_host)->default_value(m_host), "host")
+	    ("port,p", po::value<int>(&m_port)->default_value(m_port), "port")
+	    ("controlport,c", po::value<int>(&m_portControl)->default_value(m_portControl), "control port")
+        ;
+
+        po::options_description podesc_cmdline;
+        podesc_cmdline.add(podesc_generic).add(podesc_config);
+
+        po::options_description podesc_file;
+        podesc_file.add(podesc_config);
+
+        po::options_description podesc_visible;
+        podesc_visible.add(podesc_generic).add(podesc_config);
+        
+        po::variables_map vm;
+        po::store(po::command_line_parser(argc, argv).options(podesc_cmdline).run(), vm);
+        po::notify(vm);
+
+        if (vm.count("help")) {
+            std::cout << "Usage: visuals [options]" << std::endl;
+            std::cout << podesc_visible << std::endl;
+            return 3;
+        }
+
+        if (vm.count("config")) {
+            std::ifstream ifs(inputConfig.c_str());
+            po::store(po::parse_config_file(ifs, podesc_file), vm);
+            po::notify(vm);
+        }
+
+    } catch (std::exception& e) {
+        std::cerr << "visuals: usage error: " << e.what() << std::endl;
+        return 2;
+    }
+
+    datadir += '/';
+    try {
+        for (auto& i: boost::filesystem::directory_iterator(datadir)) {
+	    if (i.path().extension() == ".ogg") {
+		m_musicFiles.push_back(i.path().string());
+	    	std::cout << "music file found: " << i.path() << std::endl;
+	    }
+        }
+    } catch (const boost::filesystem::filesystem_error& ex) {
+	std::cout << ex.what() << std::endl;
+    }
+
     EffectBuffer buffer;
     m_network.connect(m_host, m_port);
     //std::cout << "sockname: " << m_network.getSockName() << std::endl;
@@ -305,7 +364,10 @@ int Visuals::main(int argc, char* argv[])
         }
     });
     
-    m_streamID = m_sound.play("compo.ogg", true);
+    // start first music
+    if (m_musicFiles.size())
+    	m_streamID = m_sound.play(m_musicFiles[0], true);
+
     m_time = 0;
     std::chrono::steady_clock::time_point last_tp = std::chrono::steady_clock::now();
 
