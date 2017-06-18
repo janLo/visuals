@@ -54,7 +54,7 @@ void ExtendingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
     }
 
     if (elapsed > m_duration) {
-        m_start = state.time + rand() % 7;
+        m_start = state.time + rand() % 4;
         float x = rand() % buffer.width();
         float y = rand() % buffer.height();
         m_circle.set_center(Point(x, y));
@@ -89,7 +89,7 @@ void ExplodingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
     }
 
     if (elapsed > m_duration) {
-        m_start = state.time + rand() % 7;
+        m_start = state.time + rand() % 4;
         float x = rand() % buffer.width();
         float y = rand() % buffer.height();
         m_circle.set_center(Point(x, y));
