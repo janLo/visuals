@@ -37,5 +37,6 @@ inline Color3 saturate(const Color3& col)
 //Color3 hue(float h);
 //Color3 HSVtoRGB(const Color3& hsv);
 Color3 HSVtoRGB(const Color3& hsv);
+Color3 RGBtoHSV(Color3 rgb);
 
 #endif
