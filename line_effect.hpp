@@ -13,6 +13,9 @@ class LineEffect : public Effect
     const Color3 m_color;
     float m_rot = 0.0f;
     float m_lastFactor = 0.0f;
+    float m_limitLow = 0.1f;
+    float m_limitHigh = 0.02f;
+    bool m_limitState = false;
 
 public:
     LineEffect(const Point& p1, const Point& p2, const Color3 color);
