@@ -295,9 +295,9 @@ int Visuals::main(int argc, char* argv[])
         po::options_description podesc_config("Configuration");
         podesc_config.add_options()
             ("data,d", po::value<std::string>(&datadir)->default_value(datadir), "data directory")
-	    ("host,h", po::value<std::string>(&m_host)->default_value(m_host), "host")
-	    ("port,p", po::value<int>(&m_port)->default_value(m_port), "port")
-	    ("controlport,c", po::value<int>(&m_portControl)->default_value(m_portControl), "control port")
+            ("host,h", po::value<std::string>(&m_host)->default_value(m_host), "host")
+            ("port,p", po::value<int>(&m_port)->default_value(m_port), "port")
+            ("controlport,c", po::value<int>(&m_portControl)->default_value(m_portControl), "control port")
         ;
 
         po::options_description podesc_cmdline;
@@ -333,13 +333,13 @@ int Visuals::main(int argc, char* argv[])
     datadir += '/';
     try {
         for (auto& i: boost::filesystem::directory_iterator(datadir)) {
-	    if (i.path().extension() == ".ogg") {
-		m_musicFiles.push_back(i.path().string());
-	    	std::cout << "music file found: " << i.path() << std::endl;
-	    }
+            if (i.path().extension() == ".ogg") {
+                m_musicFiles.push_back(i.path().string());
+                std::cout << "music file found: " << i.path() << std::endl;
+            }
         }
     } catch (const boost::filesystem::filesystem_error& ex) {
-	std::cout << ex.what() << std::endl;
+        std::cout << ex.what() << std::endl;
     }
 
     EffectBuffer buffer;
@@ -366,8 +366,9 @@ int Visuals::main(int argc, char* argv[])
     });
     
     // start first music
-    if (m_musicFiles.size())
-    	m_streamID = m_sound.play(m_musicFiles[0], true);
+    if (m_musicFiles.size()) {
+        m_streamID = m_sound.play(m_musicFiles[0], true);
+    }
 
     m_time = 0;
     std::chrono::steady_clock::time_point last_tp = std::chrono::steady_clock::now();
