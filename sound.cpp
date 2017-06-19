@@ -89,7 +89,7 @@ void Sound::stop(int streamID)
         throw std::runtime_error(ss.str());
     }
 
-    ov_clear(&stream->second->m_vorbisfile);
+    //ov_clear(&stream->second->m_vorbisfile);
     fclose(stream->second->m_file);
     m_streams.erase(stream);
 }
