@@ -189,13 +189,13 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
     if (uri == "/music/next") {
         m_sound.stop(m_streamID);
         m_music = (m_music + 1) % m_musicFiles.size();
-        m_streamID = m_sound.play(m_musicFiles[m_music]);
+        m_streamID = m_sound.play(m_musicFiles[m_music], m_volume);
         mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/previous") {
         m_sound.stop(m_streamID);
         m_music = (m_music + m_musicFiles.size() - 1) % m_musicFiles.size();
-        m_streamID = m_sound.play(m_musicFiles[m_music]);
+        m_streamID = m_sound.play(m_musicFiles[m_music], m_volume);
         mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/volup") {
@@ -376,9 +376,8 @@ int Visuals::main(int argc, char* argv[])
     });
     
     // start first music
-    if (m_musicFiles.size()) {
-        m_streamID = m_sound.play(m_musicFiles[0], true);
-    }
+    if (m_musicFiles.size())
+        m_streamID = m_sound.play(m_musicFiles[0], true, m_volume);
 
     m_time = 0;
     std::chrono::steady_clock::time_point last_tp = std::chrono::steady_clock::now();

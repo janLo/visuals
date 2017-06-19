@@ -23,7 +23,7 @@ Sound::~Sound()
 
 }
 
-int Sound::play(const std::string& filename, bool loop)
+int Sound::play(const std::string& filename, bool loop, float volume)
 {
     auto s = std::make_shared<Stream>();
     s->m_loop = loop;
@@ -61,6 +61,8 @@ int Sound::play(const std::string& filename, bool loop)
         throw std::runtime_error(ss.str());
     }
     s->m_stream = stream;
+    volume = std::max(0.0f, std::min(1.0f, volume));
+    s->m_volume = volume;
 
     err = Pa_StartStream(stream);
     if (err != paNoError) {

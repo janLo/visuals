@@ -21,7 +21,7 @@ public:
     Sound();
     virtual ~Sound();
 
-    int play(const std::string& filename, bool loop = false);
+    int play(const std::string& filename, bool loop = false, float volume = 1.0f);
     void stop(int streamID);
     double getTime(int streamID);
     void setVolume(int streamID, float volume);
