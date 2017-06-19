@@ -190,14 +190,14 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
         m_sound.stop(m_streamID);
         m_music = (m_music + 1) % m_musicFiles.size();
         std::cout << "Play: " << m_musicFiles[m_music] << std::endl;
-        m_streamID = m_sound.play(m_musicFiles[m_music], m_volume);
+        m_streamID = m_sound.play(m_musicFiles[m_music], m_volume, true);
         mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/previous") {
         m_sound.stop(m_streamID);
         m_music = (m_music + m_musicFiles.size() - 1) % m_musicFiles.size();
         std::cout << "Play: " << m_musicFiles[m_music] << std::endl;
-        m_streamID = m_sound.play(m_musicFiles[m_music], m_volume);
+        m_streamID = m_sound.play(m_musicFiles[m_music], m_volume, true);
         mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/volup") {
