@@ -332,10 +332,12 @@ int Visuals::main(int argc, char* argv[])
 
     datadir += '/';
     try {
-        for (auto& i: boost::filesystem::directory_iterator(datadir)) {
-            if (i.path().extension() == ".ogg") {
-                m_musicFiles.push_back(i.path().string());
-                std::cout << "music file found: " << i.path() << std::endl;
+        for (auto i = boost::filesystem::directory_iterator(datadir);
+						i != boost::filesystem::directory_iterator();
+						++i) {
+            if (i->path().extension() == ".ogg") {
+                m_musicFiles.push_back(i->path().string());
+                std::cout << "music file found: " << i->path() << std::endl;
             }
         }
     } catch (const boost::filesystem::filesystem_error& ex) {
