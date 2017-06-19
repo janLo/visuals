@@ -1,5 +1,6 @@
 #define NOMINMAX
 #include <iostream>
+#include <fstream>
 #include <random>
 
 #include "network.hpp"
