@@ -351,6 +351,7 @@ int Visuals::main(int argc, char* argv[])
     } catch (const boost::filesystem::filesystem_error& ex) {
         std::cout << ex.what() << std::endl;
     }
+    std::sort(m_musicFiles.begin(), m_musicFiles.end());
 
     EffectBuffer buffer;
     m_network.connect(m_host, m_port);
