@@ -5,6 +5,7 @@
 #include <portaudio.h>
 #include <vorbis/vorbisfile.h>
 #include <memory>
+#include <mutex>
 
 class Stream {
 public:
@@ -29,6 +30,7 @@ public:
 
 private:
     std::map<int, std::shared_ptr<Stream>> m_streams;
+    std::mutex m_mutex;
     int m_streamIDNext = 1;
     static int callback(const void *input, void *output, unsigned long frameCount, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData);
 

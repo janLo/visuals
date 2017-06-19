@@ -71,6 +71,7 @@ int Sound::play(const std::string& filename, bool loop, float volume)
         throw std::runtime_error(ss.str());
     }
 
+    std::lock_guard<std::mutex> lock(m_mutex);
     m_streams[m_streamIDNext++] = s;
     
     return m_streamIDNext - 1;
@@ -78,6 +79,7 @@ int Sound::play(const std::string& filename, bool loop, float volume)
 
 void Sound::stop(int streamID)
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     auto stream = m_streams.find(streamID);
     if (stream == m_streams.end())
         return;
@@ -96,6 +98,7 @@ void Sound::stop(int streamID)
 
 double Sound::getTime(int streamID)
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     auto stream = m_streams.find(streamID);
     if (stream == m_streams.end())
         return 0.0;
@@ -106,6 +109,7 @@ double Sound::getTime(int streamID)
 
 void Sound::setVolume(int streamID, float volume)
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     volume = std::max(0.0f, std::min(1.0f, volume));
 
     auto stream = m_streams.find(streamID);
@@ -117,6 +121,7 @@ void Sound::setVolume(int streamID, float volume)
 
 float Sound::getVolume(int streamID)
 {
+    std::lock_guard<std::mutex> lock(m_mutex);
     auto stream = m_streams.find(streamID);
     if (stream == m_streams.end())
         return 0.0f;
