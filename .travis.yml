@@ -16,6 +16,9 @@ addons:
       - cmake
       - gcc-4.9
       - g++-4.9
+      - libboost-system1.55-dev
+      - libboost-filesystem1.55-dev
+      - libboost-program-options1.55-dev
 
 env:
   - COMPILER=g++-4.9
