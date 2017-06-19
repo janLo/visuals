@@ -331,6 +331,7 @@ int Visuals::main(int argc, char* argv[])
 		std::cout << "Sending to: " << m_host << ":" << m_port << std::endl;
 		std::cout << "Control at: " << m_portControl << std::endl;
 		std::cout << "Motion from: " << m_portMotion << std::endl;
+		std::cout << "Current FPS: " << m_fps << std::endl;
 
     } catch (std::exception& e) {
         std::cerr << "visuals: usage error: " << e.what() << std::endl;
