@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+#include <mutex>
 
 #include "network.hpp"
 #include <thread>
@@ -80,6 +81,7 @@ private:
     double m_time;
     std::vector<std::vector<std::shared_ptr<Effect>>> m_effects;
     int m_currentEffect = 0;
+    std::mutex m_soundMutex;
 };
 
 
@@ -187,6 +189,7 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
         mg_printf(conn, message.c_str());
     }
     if (uri == "/music/next") {
+        std::lock_guard<std::mutex> lock(m_soundMutex);
         m_sound.stop(m_streamID);
         m_music = (m_music + 1) % m_musicFiles.size();
         std::cout << "Play: " << m_musicFiles[m_music] << std::endl;
@@ -194,6 +197,7 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
         mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/previous") {
+        std::lock_guard<std::mutex> lock(m_soundMutex);
         m_sound.stop(m_streamID);
         m_music = (m_music + m_musicFiles.size() - 1) % m_musicFiles.size();
         std::cout << "Play: " << m_musicFiles[m_music] << std::endl;
