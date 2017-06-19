@@ -298,7 +298,8 @@ int Visuals::main(int argc, char* argv[])
             ("led-host,h", po::value<std::string>(&m_host)->default_value(m_host), "led host")
             ("led-port,p", po::value<int>(&m_port)->default_value(m_port), "led port")
             ("led-controlport,c", po::value<int>(&m_portControl)->default_value(m_portControl), "led control port")
-            ("motion-port,g", po::value<int>(&m_port)->default_value(m_portMotion), "motion port")
+            ("motion-port,g", po::value<int>(&m_portMotion)->default_value(m_portMotion), "motion port")
+            ("fps,f", po::value<int>(&m_fps)->default_value(m_fps), "motion port")
         ;
 
         po::options_description podesc_cmdline;
@@ -325,6 +326,11 @@ int Visuals::main(int argc, char* argv[])
             po::store(po::parse_config_file(ifs, podesc_file), vm);
             po::notify(vm);
         }
+
+		std::cout << "Serving from: " << datadir << std::endl;
+		std::cout << "Sending to: " << m_host << ":" << m_port << std::endl;
+		std::cout << "Control at: " << m_portControl << std::endl;
+		std::cout << "Motion from: " << m_portMotion << std::endl;
 
     } catch (std::exception& e) {
         std::cerr << "visuals: usage error: " << e.what() << std::endl;
