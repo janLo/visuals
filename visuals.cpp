@@ -59,7 +59,7 @@ private:
     int m_width = 25;
     int m_height = 20;
     int m_roof = 10;
-    int m_fps = 60;
+    int m_fps = 35;
     std::string m_host = "127.0.0.1";
     std::string m_hostMotion = "192.168.1.112";
     int m_port = 7000;
@@ -294,10 +294,11 @@ int Visuals::main(int argc, char* argv[])
 
         po::options_description podesc_config("Configuration");
         podesc_config.add_options()
-            ("data,d", po::value<std::string>(&datadir)->default_value(datadir), "data directory")
-            ("host,h", po::value<std::string>(&m_host)->default_value(m_host), "host")
-            ("port,p", po::value<int>(&m_port)->default_value(m_port), "port")
-            ("controlport,c", po::value<int>(&m_portControl)->default_value(m_portControl), "control port")
+            ("music,m", po::value<std::string>(&datadir)->default_value(datadir), "data directory")
+            ("led-host,h", po::value<std::string>(&m_host)->default_value(m_host), "led host")
+            ("led-port,p", po::value<int>(&m_port)->default_value(m_port), "led port")
+            ("led-controlport,c", po::value<int>(&m_portControl)->default_value(m_portControl), "led control port")
+            ("motion-port,g", po::value<int>(&m_port)->default_value(m_portMotion), "motion port")
         ;
 
         po::options_description podesc_cmdline;
@@ -308,7 +309,7 @@ int Visuals::main(int argc, char* argv[])
 
         po::options_description podesc_visible;
         podesc_visible.add(podesc_generic).add(podesc_config);
-        
+
         po::variables_map vm;
         po::store(po::command_line_parser(argc, argv).options(podesc_cmdline).run(), vm);
         po::notify(vm);
