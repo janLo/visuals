@@ -103,6 +103,8 @@ Visuals::Visuals()
     m_server->addHandler("/music/voldown", this);
     m_server->addHandler("/music/next", this);
     m_server->addHandler("/music/previous", this);
+    m_server->addHandler("/music/seek/forward", this);
+    m_server->addHandler("/music/seek/backward", this);
     m_server->addHandler("/effect/next", this);
     m_server->addHandler("/effect/previous", this);
 
@@ -203,6 +205,16 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
         std::cout << "Play: " << m_musicFiles[m_music] << std::endl;
         m_streamID = m_sound.play(m_musicFiles[m_music], true, m_volume);
         mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
+    }
+    if (uri == "/music/seek/forward") {
+        std::lock_guard<std::mutex> lock(m_soundMutex);
+        std::cout << "Seek forward" << std::endl;
+        m_sound.seekSeconds(m_streamID, 20);
+    }
+    if (uri == "/music/seek/backward") {
+        std::lock_guard<std::mutex> lock(m_soundMutex);
+        std::cout << "Seek backward" << std::endl;
+        m_sound.seekSeconds(m_streamID, -20);
     }
     if (uri == "/music/volup") {
         m_volume += 0.05f;

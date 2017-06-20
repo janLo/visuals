@@ -129,6 +129,16 @@ float Sound::getVolume(int streamID)
     return stream->second->m_volume;
 }
 
+void Sound::seekSeconds(int streamID, long seek_seconds)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    auto stream = m_streams.find(streamID);
+    if (stream == m_streams.end())
+        return;
+
+    stream->second->m_seek_seconds += seek_seconds;
+}
+
 int Sound::callback(const void *inputBuffer,
     void *outputBuffer,
     unsigned long framesPerBuffer,
@@ -138,7 +148,16 @@ int Sound::callback(const void *inputBuffer,
 {
     Stream* stream = static_cast<Stream*>(userData);
     float* out = static_cast<float*>(outputBuffer);
-    
+
+    long seek_seconds = stream->m_seek_seconds.exchange(0);
+    if (0 != seek_seconds) {
+        double current_pos = ov_time_tell(&stream->m_vorbisfile);
+        double length = ov_time_total(&stream->m_vorbisfile, -1);
+
+        current_pos = std::max(0.0, std::min(length, current_pos + double(seek_seconds)));
+        ov_time_seek_lap(&stream->m_vorbisfile, current_pos);
+    }
+
     unsigned long samples = 0;
     while(samples < framesPerBuffer) {
         float** vorbisOut = nullptr;
