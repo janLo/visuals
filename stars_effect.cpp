@@ -4,43 +4,47 @@
 #include <cmath>
 #include "color_utils.hpp"
 
-int frames = 60;
+float show_time = 1.7f;
 
-StarsEffect::StarsEffect()
+StarsEffect::StarsEffect(std::shared_ptr<ColorMaker> color_maker, const Rect& box, int num_stars)
+: m_color_maker(color_maker), m_box(box)
 {
-    int numStars = 10;
-    for (int i=0; i<numStars; i++)
+    for (int i=0; i<num_stars; i++)
         m_stars.push_back(Star());
 }
 
+float fac = 0.5;
+
 float t(float x)
 {
-    if (x <= frames / 2)
-        return std::pow(x, 0.5f) / std::pow(frames / 2, 0.5f);
-    if (x > frames / 2)
-       return std::pow(frames / 2 - (x - frames / 2), 0.5f) / std::pow(frames / 2, 0.5f);
+    if (x <= show_time / 2.0f)
+        return std::pow(x, fac) / std::pow(show_time / 2, fac);
+    if (x > show_time / 2.0f)
+       return std::pow(show_time / 2 - (x - show_time / 2), fac) / std::pow(show_time / 2, fac);
 }
 
 void StarsEffect::fill(EffectBuffer& buffer, const EffectState& state) {
+    int started = 0;
+    for (auto& star: m_stars) {
+        float elapsed = state.time - star.m_time;
 
-    for (auto& i: m_stars)
-        if (rand() % 20 == 0)
-            if (!i.m_enabled) {
-                i.m_enabled = true;
-                i.m_time = 0.0f;
-                i.m_x = rand() % buffer.width();
-                i.m_y = rand() % buffer.height();
-                i.m_color = Color3(0.5, 0.5, 1);
-                i.m_color = HSVtoRGB(Color3(rand()/(float)RAND_MAX, 1.0f, 0.5f));
+        if (elapsed < 0) {
+            continue;
+        }
+
+        if (elapsed > show_time) {
+            if (started > 2) {
+                continue;
             }
+            star.m_time = state.time + (rand() % 800) / 100.0f;
+            star.m_x = (rand() % int(m_box.width())) + m_box.top_left.x;
+            star.m_y = (rand() % int(m_box.height())) + m_box.top_left.y;
+            star.m_color = m_color_maker->make(state);
+            started ++;
+            continue;
+        }
 
-    for (auto& i: m_stars) {
-        i.m_time++;
-        if (i.m_time > frames)
-            i.m_enabled = false;
-
-        if (i.m_enabled)
-            buffer.set(i.m_x, i.m_y, i.m_color * t(i.m_time));
+        buffer.set(star.m_x, star.m_y, star.m_color * t(elapsed));
     }
 }
 

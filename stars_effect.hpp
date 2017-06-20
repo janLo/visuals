@@ -15,8 +15,10 @@ class StarsEffect : public Effect
     };
 
     std::vector<Star> m_stars;
+    std::shared_ptr<ColorMaker> m_color_maker;
+    Rect m_box;
 public:
-    StarsEffect();
+    StarsEffect(std::shared_ptr<ColorMaker> color_maker, const Rect& box, int num_stars = 10);
     void fill(EffectBuffer& buffer, const EffectState& state) override;
 };
 

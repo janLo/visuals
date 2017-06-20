@@ -68,6 +68,19 @@ struct Point
     {}
 };
 
+struct Rect
+{
+    Point top_left;
+    Point bottom_right;
+
+    Rect(const Point& top_left, const Point bottom_right)
+    : top_left(top_left), bottom_right(bottom_right)
+    {}
+
+    float width() const { return bottom_right.x - top_left.x; }
+    float height() const { return bottom_right.y - top_left.y; }
+};
+
 
 class Effect {
 public:
@@ -86,6 +99,32 @@ public:
     void fill(EffectBuffer& buffer, const EffectState& state);
 
     ~AddEffect();
+};
+
+
+class ColorMaker
+{
+public:
+    virtual Color3 make(const EffectState& state) = 0;
+};
+
+
+class ConstColorMaker : public ColorMaker
+{
+    Color3 m_color;
+public:
+    ConstColorMaker(const Color3& color) : m_color(color) {}
+    Color3 make(const EffectState& state) override
+    {
+        return m_color;
+    }
+};
+
+
+class RandomColorMaker : public ColorMaker
+{
+public:
+    Color3 make(const EffectState& state) override;
 };
 
 #endif

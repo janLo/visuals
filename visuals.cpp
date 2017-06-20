@@ -441,7 +441,10 @@ int Visuals::main(int argc, char* argv[])
         std::make_shared<OceanEffect>());
     effects.push_back(
         std::make_shared<AddEffect>(
-            std::make_shared<StarsEffect>(), 1.0f));
+            std::make_shared<StarsEffect>(std::make_shared<RandomColorMaker>(), Rect(Point(0, 0), Point(24, 12)), 8), 1.0f));
+    effects.push_back(
+        std::make_shared<AddEffect>(
+            std::make_shared<StarsEffect>(std::make_shared<ConstColorMaker>(Color3(1, 1, 1)), Rect(Point(0, 0), Point(24, 10)), 5), 1.0f));
     m_effects.push_back(effects);
 
     while (true) {
