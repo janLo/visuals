@@ -205,13 +205,13 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
         mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/volup") {
-        m_volume += 0.1f;
+        m_volume += 0.05f;
         m_volume = std::max(0.0f, std::min(1.0f, m_volume));
         m_sound.setVolume(m_streamID, m_volume);
         mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/voldown") {
-        m_volume -= 0.1f;
+        m_volume -= 0.05f;
         m_volume = std::max(0.0f, std::min(1.0f, m_volume));
         m_sound.setVolume(m_streamID, m_volume);
         mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
@@ -306,6 +306,7 @@ int Visuals::main(int argc, char* argv[])
             ("led-controlport,c", po::value<int>(&m_portControl)->default_value(m_portControl), "led control port")
             ("motion-port,g", po::value<int>(&m_portMotion)->default_value(m_portMotion), "motion port")
             ("fps,f", po::value<int>(&m_fps)->default_value(m_fps), "motion port")
+            ("volume,V", po::value<int>(&m_volume)->default_value(m_volume), "initial volume")
         ;
 
         po::options_description podesc_cmdline;
