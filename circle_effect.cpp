@@ -54,7 +54,7 @@ void ExtendingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
     }
 
     if (elapsed > m_duration) {
-        m_start = state.time + rand() % 4;
+        m_start = state.time + ((rand() % 500) / 100.0f);
         float x = rand() % buffer.width();
         float y = rand() % buffer.height();
         m_circle.set_center(Point(x, y));
@@ -71,7 +71,7 @@ void ExtendingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
 	    return;
     }
 
-    m_circle.set_color(m_color * sqrt_progress);
+    m_circle.set_color(m_color * progress);
     m_circle.set_radius(radius * sqrt_progress);
     m_circle.fill(buffer, state);
 }
@@ -89,7 +89,7 @@ void ExplodingCircleEffect::fill(EffectBuffer& buffer, const EffectState& state)
     }
 
     if (elapsed > m_duration) {
-        m_start = state.time + rand() % 4;
+        m_start = state.time + ((rand() % 400) / 100.0f);
         float x = rand() % buffer.width();
         float y = rand() % buffer.height();
         m_circle.set_center(Point(x, y));
