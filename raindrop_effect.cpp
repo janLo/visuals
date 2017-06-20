@@ -44,7 +44,7 @@ void Raindrop::fill(EffectBuffer& buffer, const EffectState& state)
 void Raindrop::reset(const double time)
 {
     m_start = time;
-    m_speed = 1 + rand() % 15;
+    m_speed = 1 + rand() % 10;
 }
 
 
