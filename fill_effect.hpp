@@ -2,14 +2,15 @@
 #define FILL_EFFECT_HPP
 
 #include "effect.hpp"
+#include "color_maker.hpp"
 
 class FillEffect : public Effect
 {
-    Color3 m_color;
+    std::shared_ptr<ColorMaker> m_color_maker;
     double m_onset;
     float m_last;
 public:
-    FillEffect(const Color3& color): m_color(color) { }
+    FillEffect(std::shared_ptr<ColorMaker> color_maker): m_color_maker(color_maker) { }
     void fill(EffectBuffer& buffer, const EffectState& state);
 };
 
