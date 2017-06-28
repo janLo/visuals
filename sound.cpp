@@ -176,6 +176,7 @@ int Sound::callback(const void *inputBuffer,
 
         for(int i=0; i<ret; i++)
         {
+            stream->m_beat.put_frame(vorbisOut[0][i]);
             *out++ = vorbisOut[0][i] * stream->m_volume;
             *out++ = vorbisOut[1][i] * stream->m_volume;
         }
@@ -186,4 +187,33 @@ int Sound::callback(const void *inputBuffer,
     stream->m_time = timeInfo->outputBufferDacTime;
 
     return paNoError;
+}
+
+
+BeatData Sound::getBeatData(int streamID, int time) {
+    auto stream = m_streams.find(streamID);
+    if (stream == m_streams.end())
+        return BeatData(0, 0, 0);
+
+    BeatBuffer& bb = stream->second->m_beat;
+    bb.process(time);
+    return BeatData(bb.kick(), bb.snare(), bb.hihat());
+}
+
+
+BeatBuffer::BeatBuffer()
+: m_data(1024 * 16), m_beat(1024 * 16, 512)
+{ }
+
+
+void BeatBuffer::process(int time)
+{
+    size_t pos(0);
+    {
+	std::lock_guard<std::mutex> lock(m_mutex);
+	pos = m_pos.exchange(0);
+	m_beat.audioFill(m_data.data(), pos);
+    }
+    m_beat.audioProcess(pos);
+    m_beat.update(time);
 }
