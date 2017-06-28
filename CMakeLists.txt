@@ -6,10 +6,11 @@ cmake_minimum_required(VERSION 3.0)
 project(visuals)
 
 
-file(GLOB FILES *.cpp *.hpp *.c *.h)
+file(GLOB FILES *.cpp *.hpp *.c *.h ox_src/*.cpp ox_src/*.h)
 
 if (NOT WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOFX_BEAT_STANDALONE")
 
     find_package(Threads)
     find_library(ATOMIC_LIBRARY NAMES atomic atomic.so.1 libatomic.so.1 HINTS /usr/lib/${CMAKE_C_LIBRARY_ARCHITECTURE} PATH_SUFFIXES )
