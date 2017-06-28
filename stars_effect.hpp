@@ -2,6 +2,7 @@
 #define STARS_EFFECT_HPP
 
 #include "effect.hpp"
+#include "color_maker.hpp"
 #include "color_utils.hpp"
 
 class StarsEffect : public Effect

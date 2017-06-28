@@ -11,21 +11,8 @@
 #include <iostream>
 
 #include "ox_src/ofxBeat.h"
+#include "effect_data.hpp"
 
-struct BeatData
-{
-    float kick;
-    float snare;
-    float hihat;
-
-    BeatData(float kick, float snare, float hihat)
-    : kick(kick), snare(snare), hihat(hihat)
-    {}
-
-    BeatData() noexcept
-    : kick(0), snare(0), hihat(0)
-    {}
-};
 
 class BeatBuffer {
     std::vector<float> m_data;
@@ -76,7 +63,7 @@ public:
     void setVolume(int streamID, float volume);
     float getVolume(int streamID);
     void seekSeconds(int streamID, long seek_seconds);
-    BeatData getBeatData(int streamID, int time);
+    BeatEffectData getBeatData(int streamID, int time);
 
 private:
     std::map<int, std::shared_ptr<Stream>> m_streams;

@@ -5,6 +5,7 @@
 #include <memory>
 #include "color.hpp"
 #include "sound.hpp"
+#include "effect_data.hpp"
 
 class EffectBuffer {
 public:
@@ -39,26 +40,6 @@ private:
     std::vector<Color3> m_buffer;
 };
 
-//typedef std::vector<unsigned int>  EffectBuffer;
-
-struct RotationData
-{
-    float x, y, z; // angles
-    RotationData(const float x, const float y, const float z)
-    : x(x), y(y), z(z)
-    {}
-};
-
-struct EffectState
-{
-    const double time;
-    const RotationData rotation;
-    const BeatData sound;
-
-    EffectState(const double time, const RotationData& rotation, const BeatData& sound)
-    : time(time), rotation(rotation), sound(sound)
-    {}
-};
 
 struct Point
 {
@@ -103,30 +84,5 @@ public:
     ~AddEffect();
 };
 
-
-class ColorMaker
-{
-public:
-    virtual Color3 make(const EffectState& state) = 0;
-};
-
-
-class ConstColorMaker : public ColorMaker
-{
-    Color3 m_color;
-public:
-    ConstColorMaker(const Color3& color) : m_color(color) {}
-    Color3 make(const EffectState& state) override
-    {
-        return m_color;
-    }
-};
-
-
-class RandomColorMaker : public ColorMaker
-{
-public:
-    Color3 make(const EffectState& state) override;
-};
 
 #endif

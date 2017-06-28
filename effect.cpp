@@ -17,7 +17,3 @@ void AddEffect::fill(EffectBuffer& buffer, const EffectState& state) {
 AddEffect::~AddEffect() {}
 
 
-Color3 RandomColorMaker::make(const EffectState& state)
-{
-return HSVtoRGB(Color3(rand()/(float)RAND_MAX, 1.0f, 0.5f));
-}

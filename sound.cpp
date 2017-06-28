@@ -190,14 +190,14 @@ int Sound::callback(const void *inputBuffer,
 }
 
 
-BeatData Sound::getBeatData(int streamID, int time) {
+BeatEffectData Sound::getBeatData(int streamID, int time) {
     auto stream = m_streams.find(streamID);
     if (stream == m_streams.end())
-        return BeatData(0, 0, 0);
+        return BeatEffectData(0, 0, 0);
 
     BeatBuffer& bb = stream->second->m_beat;
     bb.process(time);
-    return BeatData(bb.kick(), bb.snare(), bb.hihat());
+    return BeatEffectData(bb.kick(), bb.snare(), bb.hihat());
 }
 
 

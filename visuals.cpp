@@ -18,7 +18,9 @@
 
 #include "color_utils.hpp"
 
+#include "effect_data.hpp"
 #include "effect.hpp"
+#include "color_maker.hpp"
 #include "raindrop_effect.hpp"
 #include "rotation_effect.hpp"
 #include "line_effect.hpp"
@@ -396,7 +398,7 @@ int Visuals::main(int argc, char* argv[])
         }
     });
 
-    std::atomic<BeatData> beat_data;
+    std::atomic<BeatEffectData> beat_data;
 
     auto beatThread = std::thread([this, &beat_data]() {
         auto sleep = std::chrono::milliseconds(1000 / m_fps);
