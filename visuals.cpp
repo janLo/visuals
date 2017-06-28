@@ -27,6 +27,7 @@
 #include "ocean_effect.hpp"
 #include "wave_effect.hpp"
 #include "stars_effect.hpp"
+#include "fill_effect.hpp"
 
 /*#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"*/
