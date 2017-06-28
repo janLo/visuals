@@ -394,7 +394,17 @@ int Visuals::main(int argc, char* argv[])
             }
         }
     });
-    
+
+    std::atomic<BeatData> beat_data;
+
+    auto beatThread = std::thread([this, &beat_data]() {
+        auto sleep = std::chrono::milliseconds(1000 / m_fps);
+        while (true) {
+            std::this_thread::sleep_for(sleep);
+	    beat_data = m_sound.getBeatData(m_streamID, int(m_time * 1000.0));
+        }
+    });
+
     // start first music
     if (m_musicFiles.size())
         m_streamID = m_sound.play(m_musicFiles[0], true, m_volume);
@@ -467,7 +477,7 @@ int Visuals::main(int argc, char* argv[])
     m_time += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_tp).count() / 1000.0f;
 
         MotionData md = amd;
-        EffectState state(m_time, motion(md));
+        EffectState state(m_time, motion(md), beat_data);
 
         buffer.clear();
         fill(buffer, m_effects[m_currentEffect], state);

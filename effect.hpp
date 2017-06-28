@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include "color.hpp"
+#include "sound.hpp"
 
 class EffectBuffer {
 public:
@@ -52,9 +53,10 @@ struct EffectState
 {
     const double time;
     const RotationData rotation;
+    const BeatData sound;
 
-    EffectState(const double time, const RotationData& rotation)
-    : time(time), rotation(rotation)
+    EffectState(const double time, const RotationData& rotation, const BeatData& sound)
+    : time(time), rotation(rotation), sound(sound)
     {}
 };
 
