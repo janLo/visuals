@@ -22,12 +22,16 @@ addons:
       - libboost-program-options1.55-dev
 
 env:
-  - COMPILER=g++-4.9
+  global:
+    - COMPILER=g++-4.9
+  matrix:
+    - BUILD_TYPE=Release
+    - BUILD_TYPE=Debug
 
 before_script:
   - mkdir build
   - cd build
-  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
 
 script:
   - pwd
