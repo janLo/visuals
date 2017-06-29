@@ -11,7 +11,7 @@ Color3 RandomColorMaker::make(const EffectState& state)
     return HSVtoRGB(Color3(rand()/(float)RAND_MAX, 1.0f, 0.5f));
 }
 
-#define KICK_GLOW 3.0f
+#define KICK_GLOW 2.0f
 
 Color3 KickColorIntensity::make(const EffectState& state)
 {
@@ -32,5 +32,6 @@ Color3 KickColorIntensity::make(const EffectState& state)
     if (current > 0 && coeff < current) {
 	m_last = current;
     }
+
     return m_color * std::max(current, coeff);
 }
