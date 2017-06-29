@@ -215,6 +215,9 @@ void BeatBuffer::process(int time)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         pos = m_pos.exchange(0);
+        if (0 == pos) {
+            return;
+        }
         m_beat.audioFill(m_data.data(), pos);
     }
     m_beat.audioProcess(pos);

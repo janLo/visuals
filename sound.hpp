@@ -38,11 +38,12 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
 
         size_t pos = m_pos;
-        if (pos + length > m_data.size()) {
+        size_t cropped = std::min(m_data.size() - pos, length);
+        if (cropped < 1) {
             return;
         }
-        memcpy(&m_data[pos], frames, sizeof(float) * length);
-        m_pos = pos + length;
+        memcpy(&m_data[pos], frames, sizeof(float) * cropped);
+        m_pos = pos + cropped;
     }
 
     void process(int time);
