@@ -25,6 +25,8 @@ env:
   - COMPILER=g++-4.9
 
 before_script:
+  - git submodule init
+  - git submodule update --recursive
   - mkdir build
   - cd build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
