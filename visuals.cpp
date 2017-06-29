@@ -72,6 +72,7 @@ private:
     int m_portMotionControl = 7001;
     float m_brightness = 0.1f;
     std::vector<int> m_leds;
+    std::atomic<bool> m_do_fft;
 
     Network m_network;
     Network m_networkControl;
@@ -108,6 +109,7 @@ Visuals::Visuals()
     m_server->addHandler("/music/previous", this);
     m_server->addHandler("/music/seek/forward", this);
     m_server->addHandler("/music/seek/backward", this);
+    m_server->addHandler("/music/beat/toggle", this);
     m_server->addHandler("/effect/next", this);
     m_server->addHandler("/effect/previous", this);
 
@@ -121,6 +123,8 @@ Visuals::Visuals()
                 m_leds.push_back(m_leds[19-y] + x);
         }
     }
+
+    m_do_fft.exchange(false);
 }
 
 bool Visuals::getParamString(mg_connection* conn, const std::string& name, std::string& result, size_t occurance)
@@ -229,6 +233,10 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
         m_volume -= 0.05f;
         m_volume = std::max(0.0f, std::min(1.0f, m_volume));
         m_sound.setVolume(m_streamID, m_volume);
+        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
+    }
+    if (uri == "/music/beat/toggle") {
+        m_do_fft.exchange(! m_do_fft.load());
         mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/effect/next") {
@@ -401,10 +409,15 @@ int Visuals::main(int argc, char* argv[])
     std::atomic<BeatEffectData> beat_data;
 
     auto beatThread = std::thread([this, &beat_data]() {
-        auto sleep = std::chrono::milliseconds(1000 / m_fps);
+        auto sleep = std::chrono::milliseconds(1000 / (m_fps * 2));
         while (true) {
-            std::this_thread::sleep_for(sleep);
-	    beat_data = m_sound.getBeatData(m_streamID, int(m_time * 1000.0));
+            if (m_do_fft.load()) {
+                std::this_thread::sleep_for(sleep);
+                beat_data = m_sound.getBeatData(m_streamID, int(m_time * 1000.0));
+            } else {
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+                beat_data = BeatEffectData(0, 0, 0);
+            }
         }
     });
 
@@ -416,6 +429,7 @@ int Visuals::main(int argc, char* argv[])
     std::chrono::steady_clock::time_point last_tp = std::chrono::steady_clock::now();
 
     std::vector<std::shared_ptr<Effect>> effects;
+
     effects.push_back(
             std::make_shared<AddEffect>(
                 std::make_shared<RaindropEffect>(m_width, m_time), 0.7f));
@@ -427,6 +441,11 @@ int Visuals::main(int argc, char* argv[])
     effects.push_back(
             std::make_shared<AddEffect>(
                 std::make_shared<PlasmaEffect>(), 0.07f));
+
+    effects.push_back(
+        std::make_shared<AddEffect>(
+            std::make_shared<FillEffect>(std::make_shared<KickColorIntensity>(Color3(1,1,1))), 0.2f));
+
 
     m_effects.push_back(effects);
 
@@ -450,6 +469,11 @@ int Visuals::main(int argc, char* argv[])
     effects.push_back(
             std::make_shared<AddEffect>(
         std::make_shared<ExtendingCircleEffect>(4.0f, HSVtoRGB(Color3(rand() / RAND_MAX, 1.0f, 1.0f)), 4, m_time), 1.0f));
+
+    effects.push_back(
+        std::make_shared<AddEffect>(
+            std::make_shared<FillEffect>(std::make_shared<KickColorIntensity>(Color3(1,1,1))), 0.2f));
+
     m_effects.push_back(effects);
 
     effects.clear();
@@ -463,6 +487,11 @@ int Visuals::main(int argc, char* argv[])
     effects.push_back(
             std::make_shared<AddEffect>(
         std::make_shared<TopDownWaveEffect>(3, true), 1.0f));
+
+    effects.push_back(
+        std::make_shared<AddEffect>(
+            std::make_shared<FillEffect>(std::make_shared<KickColorIntensity>(Color3(1,1,1))), 0.2f));
+
     m_effects.push_back(effects);
 
     effects.clear();
@@ -474,6 +503,11 @@ int Visuals::main(int argc, char* argv[])
     effects.push_back(
         std::make_shared<AddEffect>(
             std::make_shared<StarsEffect>(std::make_shared<ConstColorMaker>(Color3(1, 1, 1)), Rect(Point(0, 0), Point(24, 10)), 5), 1.0f));
+
+    effects.push_back(
+        std::make_shared<AddEffect>(
+            std::make_shared<FillEffect>(std::make_shared<KickColorIntensity>(Color3(1,1,1))), 0.2f));
+
     m_effects.push_back(effects);
 
     while (true) {
