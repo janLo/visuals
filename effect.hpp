@@ -4,7 +4,6 @@
 #include <vector>
 #include <memory>
 #include "color.hpp"
-#include "sound.hpp"
 #include "effect_data.hpp"
 
 class EffectBuffer {
