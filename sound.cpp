@@ -174,9 +174,12 @@ int Sound::callback(const void *inputBuffer,
             }
         }
 
+        if (ret > 0 && vorbisOut != nullptr) {
+            stream->m_beat.put_frames(vorbisOut[0], ret);
+        }
+
         for(int i=0; i<ret; i++)
         {
-            stream->m_beat.put_frame(vorbisOut[0][i]);
             *out++ = vorbisOut[0][i] * stream->m_volume;
             *out++ = vorbisOut[1][i] * stream->m_volume;
         }
@@ -202,7 +205,7 @@ BeatEffectData Sound::getBeatData(int streamID, int time) {
 
 
 BeatBuffer::BeatBuffer()
-: m_data(1024 * 16), m_beat(1024 * 16, 512)
+: m_data(1024 * 2), m_beat(1024 * 2, 512)
 { }
 
 
@@ -210,9 +213,9 @@ void BeatBuffer::process(int time)
 {
     size_t pos(0);
     {
-	std::lock_guard<std::mutex> lock(m_mutex);
-	pos = m_pos.exchange(0);
-	m_beat.audioFill(m_data.data(), pos);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        pos = m_pos.exchange(0);
+        m_beat.audioFill(m_data.data(), pos);
     }
     m_beat.audioProcess(pos);
     m_beat.update(time);

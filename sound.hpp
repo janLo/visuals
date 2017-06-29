@@ -9,6 +9,7 @@
 #include <mutex>
 #include <atomic>
 #include <iostream>
+#include <cstring>
 
 #include "ox_src/ofxBeat.h"
 #include "effect_data.hpp"
@@ -27,10 +28,21 @@ public:
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (m_pos > m_data.size()) {
-            std::cout << "Beat buffer overrun" << std::endl;
             return;
         }
         m_data[m_pos++] = frame;
+    }
+
+    void put_frames(const float * const frames, const size_t length)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+
+        size_t pos = m_pos;
+        if (pos + length > m_data.size()) {
+            return;
+        }
+        memcpy(&m_data[pos], frames, sizeof(float) * length);
+        m_pos = pos + length;
     }
 
     void process(int time);
