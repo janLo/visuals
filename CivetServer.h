@@ -287,5 +287,25 @@ private:
 
 };
 
+
+class HttpResponse {
+public:
+    typedef enum {
+        OK = 200,
+        INTERNAL_SERVER_ERROR = 500
+    } Code_t;
+
+    HttpResponse(mg_connection* conn, Code_t code = OK);
+
+    void set_type(Code_t code) { m_code = code; }
+    void set_message(const std::string& message) { m_message = message; }
+
+    ~HttpResponse();
+private:
+    mg_connection* m_conn;
+    Code_t m_code;
+    std::string m_message;
+};
+
 #endif /*  __cplusplus */
 #endif /* _CIVETWEB_SERVER_H_ */

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <sstream>
 
 #ifndef UNUSED_PARAMETER
 #define UNUSED_PARAMETER(x) (void)(x)
@@ -218,4 +219,36 @@ CivetServer::urlEncode(const char *src, size_t src_len, std::string &dst, bool a
             dst.push_back(hex[(* (const unsigned char *) src) & 0xf]);
         }
     }
+}
+
+
+HttpResponse::HttpResponse(mg_connection* conn, Code_t code)
+: m_conn(conn), m_code(code)
+{}
+
+
+std::string code_name(HttpResponse::Code_t code)
+{
+    switch (code) {
+	    case HttpResponse::OK:
+            return "OK";
+	    case HttpResponse::INTERNAL_SERVER_ERROR:
+            return "Internal Server Error";
+    }
+    assert(false);
+    return "";
+}
+
+
+HttpResponse::~HttpResponse()
+{
+    std::stringstream out;
+
+    out << "HTTP/1.1 " << int(m_code) << " " << code_name(m_code) << "\r\n\r\n";
+
+    if (m_message.size() > 0) {
+            out << m_message;
+    }
+
+    mg_printf(m_conn, out.str().c_str());
 }
