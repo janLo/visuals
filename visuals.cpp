@@ -217,11 +217,13 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
         std::lock_guard<std::mutex> lock(m_soundMutex);
         std::cout << "Seek forward" << std::endl;
         m_sound.seekSeconds(m_streamID, 20);
+        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/seek/backward") {
         std::lock_guard<std::mutex> lock(m_soundMutex);
         std::cout << "Seek backward" << std::endl;
         m_sound.seekSeconds(m_streamID, -20);
+        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/volup") {
         m_volume += 0.05f;
