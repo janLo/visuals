@@ -166,7 +166,8 @@ bool Visuals::getParamInt(mg_connection* conn, const std::string& name, int& res
 bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
 {
     std::string uri = mg_get_request_info(conn)->uri;
-    
+    HttpResponse response(conn);
+
     if (uri == "/set") {
         std::string message;
         if (getParamInt(conn, "fps", m_fps, 0)) {
@@ -194,8 +195,7 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
             setBrightness(m_brightness);
             message = "brightness=" + std::to_string(m_brightness);
         }
-        message = "HTTP/1.1 200 OK\r\n\r\n" + message;
-        mg_printf(conn, message.c_str());
+	response.set_message(message);
     }
     if (uri == "/music/next") {
         std::lock_guard<std::mutex> lock(m_soundMutex);
@@ -203,7 +203,6 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
         m_music = (m_music + 1) % m_musicFiles.size();
         std::cout << "Play: " << m_musicFiles[m_music] << std::endl;
         m_streamID = m_sound.play(m_musicFiles[m_music], true, m_volume);
-        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/previous") {
         std::lock_guard<std::mutex> lock(m_soundMutex);
@@ -211,43 +210,35 @@ bool Visuals::handleGet(CivetServer* server, mg_connection* conn)
         m_music = (m_music + m_musicFiles.size() - 1) % m_musicFiles.size();
         std::cout << "Play: " << m_musicFiles[m_music] << std::endl;
         m_streamID = m_sound.play(m_musicFiles[m_music], true, m_volume);
-        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/seek/forward") {
         std::lock_guard<std::mutex> lock(m_soundMutex);
         std::cout << "Seek forward" << std::endl;
         m_sound.seekSeconds(m_streamID, 20);
-        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/seek/backward") {
         std::lock_guard<std::mutex> lock(m_soundMutex);
         std::cout << "Seek backward" << std::endl;
         m_sound.seekSeconds(m_streamID, -20);
-        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/volup") {
         m_volume += 0.05f;
         m_volume = std::max(0.0f, std::min(1.0f, m_volume));
         m_sound.setVolume(m_streamID, m_volume);
-        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/voldown") {
         m_volume -= 0.05f;
         m_volume = std::max(0.0f, std::min(1.0f, m_volume));
         m_sound.setVolume(m_streamID, m_volume);
-        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/music/beat/toggle") {
         m_do_fft.exchange(! m_do_fft.load());
-        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/effect/next") {
         m_currentEffect = (m_currentEffect + 1) % m_effects.size();
-        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     if (uri == "/effect/previous") {
         m_currentEffect = (m_currentEffect + m_effects.size() - 1) % m_effects.size();
-        mg_printf(conn,"HTTP/1.1 200 OK\r\n\r\n");
     }
     return true;
 }
